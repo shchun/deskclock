@@ -231,18 +231,8 @@
   .stage.idle .nav{ opacity:0; pointer-events:none; }
   .nav:hover{ opacity:1 !important; }
 
-  /* 광폭 화면(예: 폴드 커버 화면 가로 2316x904)에서는 vmin(짧은 변) 기준 콘텐츠가
-     작게 보인다. 중앙 클러스터형 페이스(1·2·4)는 통째로 확대하고, 모서리 라벨을 쓰는
-     타이포 페이스(3)는 글자 크기만 키워 라벨이 화면 밖으로 밀리지 않게 한다. */
-  @media (min-aspect-ratio: 16/10){
-    .f1-wrap{ transform:scale(2.2); }
-    .f2-wrap{ transform:scale(2); }
-    .f4-wrap{ transform:scale(1.9); }
-    #face3 .f3-time{ font-size:60vmin; }
-    #face3 .f3-ampm{ font-size:13vmin; }
-    #face3 .f3-sec{ font-size:10vmin; }
-    #face3 .f3-date{ font-size:6.4vmin; }
-  }
+  /* 화면 비율에 맞춘 확대는 JS(fitActive)가 담당한다 — 콘텐츠를 측정해 어떤
+     비율(세로 바/가로 바/일반 폰)에서도 화면의 ~92%에 맞춰 키운다(넘치지 않게). */
 </style>
 </head>
 <body>
@@ -352,7 +342,38 @@
     stage.dataset.theme = FACES[active].theme;
     localStorage.setItem('deskclock.face', active);
     if(FACES[active].id==='face2') renderFlip(false); // set instantly, no animation
+    fitActive();
+    setTimeout(fitActive, 600); // 진입 애니메이션이 끝난 뒤 정확히 다시 맞춤
   }
+
+  /* ---------- 화면 비율에 맞춰 콘텐츠 자동 확대 ----------
+     vmin(짧은 변) 기준이라 세로/가로로 길쭉한 화면(폴드 커버 등)에서 작게 보이는
+     것을 보정. 콘텐츠 실측 크기로 배율을 계산하므로 어떤 비율에서도 넘치지 않는다. */
+  function fitEl(el, availW, availH, maxS){
+    const cur = +(el.dataset.fit || 1);
+    const r = el.getBoundingClientRect();
+    const natW = r.width/cur, natH = r.height/cur;
+    if(!natW || !natH) return;
+    let s = Math.min(availW/natW, availH/natH);
+    s = Math.max(0.4, Math.min(maxS, s));
+    el.dataset.fit = s;
+    el.style.transform = 'scale('+s+')';
+  }
+  function fitActive(){
+    const id = FACES[active].id;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    if(id==='face3'){
+      // 타이포: 중앙 시간만 맞춤(모서리 라벨은 vmin 기준 그대로 둠)
+      const t = document.getElementById('f3-time');
+      if(t) fitEl(t, vw*0.94, vh*0.92, 6);
+    }else{
+      const w = document.querySelector('#'+id+' .'+id.replace('face','f')+'-wrap');
+      if(w) fitEl(w, vw*0.92, vh*0.92, 4);
+    }
+  }
+  let lastHlen = 0;
+  window.addEventListener('resize', fitActive);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitActive);
 
   // 시계 화면을 터치(클릭)하면 다음 시계로 전환
   stage.addEventListener('click',()=>go(active+1));
@@ -466,12 +487,17 @@
     f4t.innerHTML=h12+'<span class="f4-colon">:</span>'+mm;
     f4a.textContent=ampm; f4s.textContent=ss;
     f4d.textContent=dayL+' · '+monL+' '+dn;
+
+    // 시 자릿수(예: 9→10, 12→1)가 바뀌면 시간 폭이 달라지므로 다시 맞춤
+    const hlen = String(h12).length;
+    if(hlen !== lastHlen){ lastHlen = hlen; fitActive(); }
   }
 
   // init
   go(active);
   tick();
   renderFlip(false);
+  fitActive();
   // align to second boundary, then tick each second
   function loop(){ tick(); setTimeout(loop, 1000 - (Date.now()%1000)); }
   setTimeout(loop, 1000 - (Date.now()%1000));
