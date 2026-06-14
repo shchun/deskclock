@@ -6,9 +6,17 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#000000">
 <title>Desk Clock</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Archivo:wght@500;600;700&family=Anton&family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  /* 오프라인 사용을 위해 폰트를 앱에 내장 (Jost/Archivo/Orbitron은 가변폰트) */
+  @font-face{ font-family:'Jost'; font-style:normal; font-weight:200 500;
+    src:url('fonts/jost-var.woff2') format('woff2'); font-display:swap; }
+  @font-face{ font-family:'Archivo'; font-style:normal; font-weight:500 700;
+    src:url('fonts/archivo-var.woff2') format('woff2'); font-display:swap; }
+  @font-face{ font-family:'Orbitron'; font-style:normal; font-weight:400 700;
+    src:url('fonts/orbitron-var.woff2') format('woff2'); font-display:swap; }
+  @font-face{ font-family:'Anton'; font-style:normal; font-weight:400;
+    src:url('fonts/anton-400.woff2') format('woff2'); font-display:swap; }
+</style>
 <style>
   *{ margin:0; padding:0; box-sizing:border-box; }
   html,body{ height:100%; }
@@ -219,14 +227,28 @@
 
   .stage.idle .nav{ opacity:0; pointer-events:none; }
   .nav:hover{ opacity:1 !important; }
+
+  /* 광폭 화면(예: 폴드 커버 화면 가로 2316x904)에서는 vmin(짧은 변) 기준 콘텐츠가
+     작게 보인다. 중앙 클러스터형 페이스(1·2·4)는 통째로 확대하고, 모서리 라벨을 쓰는
+     타이포 페이스(3)는 글자 크기만 키워 라벨이 화면 밖으로 밀리지 않게 한다. */
+  @media (min-aspect-ratio: 16/10){
+    .f1-wrap{ transform:scale(2.2); }
+    .f2-wrap{ transform:scale(2); }
+    .f4-wrap{ transform:scale(1.9); }
+    #face3 .f3-time{ font-size:60vmin; }
+    #face3 .f3-ampm{ font-size:13vmin; }
+    #face3 .f3-sec{ font-size:10vmin; }
+    #face3 .f3-date{ font-size:6.4vmin; }
+  }
 </style>
 </head>
 <body>
+  <!-- 번들 앱에서는 에셋이 이미 로컬이라 서비스워커가 불필요(오히려 stale 캐시 유발)하여 제거함.
+       기존에 등록된 SW가 있으면 해제하여 옛 캐시를 정리한다. -->
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('service-worker.js').catch(()=>{});
-      });
+      navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+      if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
     }
   </script>
   <div class="stage" id="stage" data-theme="light">

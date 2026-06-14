@@ -1,5 +1,6 @@
 package com.precipi.deskclock;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.WindowManager;
 
@@ -16,6 +17,11 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         // 데스크 클락: 화면이 꺼지지 않게 유지
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // 컷아웃/레터박스 영역에 흰색이 비치지 않도록 배경을 검정으로
+        getWindow().getDecorView().setBackgroundColor(Color.BLACK);
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().setBackgroundColor(Color.BLACK);
+        }
         hideSystemUI();
     }
 
