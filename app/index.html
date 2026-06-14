@@ -140,18 +140,18 @@
     font-variant-numeric:tabular-nums; text-transform:uppercase;
   }
   .f3-ampm{
-    position:absolute; top:18%; right:9%;
+    position:absolute; top:6%; right:6%;
     font-family:'Anton',sans-serif; font-size:9vmin; line-height:.8;
     color:#cf3f23;
   }
   .f3-date{
-    position:absolute; left:9%; bottom:11%;
+    position:absolute; left:5%; bottom:6%;
     writing-mode:vertical-rl; transform:rotate(180deg);
     font-family:'Anton',sans-serif; font-size:4.4vmin; letter-spacing:.06em;
     color:#15130d; text-transform:uppercase;
   }
   .f3-sec{
-    position:absolute; right:9%; bottom:11%;
+    position:absolute; right:6%; bottom:6%;
     font-family:'Anton',sans-serif; font-size:7vmin; color:#cf3f23;
     font-variant-numeric:tabular-nums;
   }
@@ -364,8 +364,9 @@
     const vw = window.innerWidth, vh = window.innerHeight;
     if(id==='face3'){
       // 타이포: 중앙 시간만 맞춤(모서리 라벨은 vmin 기준 그대로 둠)
+      // 시간의 세로 크기를 제한해 위/아래 모서리 라벨(AM·초·날짜)과 겹치지 않게 한다
       const t = document.getElementById('f3-time');
-      if(t) fitEl(t, vw*0.94, vh*0.92, 6);
+      if(t) fitEl(t, vw*0.9, vh*0.6, 5);
     }else{
       const w = document.querySelector('#'+id+' .'+id.replace('face','f')+'-wrap');
       if(w) fitEl(w, vw*0.92, vh*0.92, 4);
