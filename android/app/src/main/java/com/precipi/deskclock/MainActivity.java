@@ -1,5 +1,6 @@
 package com.precipi.deskclock;
 
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.WindowManager;
@@ -23,6 +24,20 @@ public class MainActivity extends BridgeActivity {
             getBridge().getWebView().setBackgroundColor(Color.BLACK);
         }
         hideSystemUI();
+    }
+
+    // 앱이 화면에 있는 동안에만 가로로 표시한다.
+    @Override
+    public void onResume() {
+        super.onResume();
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+    }
+
+    // 앱을 벗어날 때는 방향 요청을 해제해, 기기가 원래(실행 전) 방향으로 돌아가게 한다.
+    @Override
+    public void onPause() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        super.onPause();
     }
 
     @Override
