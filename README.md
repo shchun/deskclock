@@ -1,6 +1,6 @@
 # Desk Clock 🕐
 
-여러 시계 페이스를 넘기며 보는 **미니멀 탁상시계**. 브라우저에서 바로 쓸 수 있는 웹앱이자, 네트워크 없이 동작하는 **오프라인 Android 앱(APK)** 으로 빌드됩니다.
+여러 시계 페이스를 넘기며 보는 **미니멀 탁상시계**. 단일 HTML 화면을 Capacitor WebView로 감싼 **오프라인 Android 앱(APK)** 입니다. 네트워크 없이 동작합니다.
 
 화면을 **터치하면 다음 시계로 전환**되고, 선택한 페이스는 다음에 다시 켜도 유지됩니다. 전체화면·다크 대응으로 책상 위 상시 디스플레이(예: 폴드 커버 화면)에 잘 어울립니다.
 
@@ -40,16 +40,14 @@ Orbitron 서체에 시안/마젠타 글로우를 입힌 네온사인 시계.
 ## 구조
 
 ```
-app/                 웹앱 본체 (= Capacitor webDir)
+app/                 WebView에 들어가는 화면 (= Capacitor webDir)
   index.html         4개 페이스 + 틱/전환/저장 로직 (단일 파일)
   fonts/             내장 폰트 (Jost·Archivo·Orbitron 가변 + Anton, woff2)
-  manifest.json      PWA 매니페스트
+  manifest.json      웹 매니페스트
 android/             Capacitor가 생성한 네이티브 Android 프로젝트
 docs/DESIGN.md       페이스별 상세 디자인 사양서
 screenshots/         위 캡처 이미지
 ```
-
-웹 버전은 `app/index.html`을 그대로 정적 호스팅하면 됩니다. (별도 공개 데모는 precipi.com 의 데모 목록에 포함)
 
 ## Android APK 빌드
 
