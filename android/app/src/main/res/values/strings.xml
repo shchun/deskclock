@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Desk Clock</string>
+    <string name="title_activity_main">Desk Clock</string>
+    <string name="package_name">com.precipi.deskclock</string>
+    <string name="custom_url_scheme">com.precipi.deskclock</string>
+</resources>

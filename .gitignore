@@ -1,0 +1,22 @@
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code (로컬 설정)
+.claude/
+
+# Built APK / app bundles (루트로 복사한 산출물)
+*.apk
+*.aab
+
+# Keystore (혹시 나중에 생기면)
+*.jks
+*.keystore
+keystore.properties
