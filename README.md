@@ -1,123 +1,83 @@
-# Handoff: Desk Clock (4 cycleable designs)
+# Desk Clock 🕐
 
-## Overview
-A full-screen desk clock that shows the current time and lets the user cycle between **4 visual designs**. Time is 12-hour format with an AM/PM indicator, plus the weekday and date. The chosen design persists across reloads. There are no other features — this is intentionally a single-purpose clock.
+여러 시계 페이스를 넘기며 보는 **미니멀 탁상시계**. 브라우저에서 바로 쓸 수 있는 웹앱이자, 네트워크 없이 동작하는 **오프라인 Android 앱(APK)** 으로 빌드됩니다.
 
-## About the Design Files
-The file in this bundle (`Desk Clock.html`) is a **design reference created in HTML** — a working prototype that demonstrates the intended look and behavior. It is **not** production code to paste in directly. The task is to **recreate these designs in the target codebase's existing environment** (React, Vue, SwiftUI, native, a screensaver target, etc.) using that project's established patterns. If no codebase exists yet, pick the most appropriate framework and implement the designs there.
+화면을 **터치하면 다음 시계로 전환**되고, 선택한 페이스는 다음에 다시 켜도 유지됩니다. 전체화면·다크 대응으로 책상 위 상시 디스플레이(예: 폴드 커버 화면)에 잘 어울립니다.
 
-The prototype uses vanilla HTML/CSS/JS with `setTimeout` ticking and Google Fonts. Adapt the structure to your stack — e.g. a `<Clock>` component with a `faceIndex` state and one sub-component per face.
+## 시계 페이스
 
-## Fidelity
-**High-fidelity.** Final colors, typography, spacing, and interactions are all specified below. Recreate pixel-faithfully, but feel free to substitute your codebase's own font-loading and state mechanisms.
+아래 캡처는 갤럭시 Z 폴드5 **커버 화면(가로 2316×904)** 에서 찍은 것입니다.
 
-## Core behavior (shared by all faces)
-- **Tick:** update every second, aligned to the wall-clock second boundary (`setTimeout(loop, 1000 - Date.now()%1000)`).
-- **Time format:** 12-hour. Hour `h12 = h % 12 || 12`. AM/PM string `h >= 12 ? 'PM' : 'AM'`.
-- **Seconds:** zero-padded 2 digits (`08`).
-- **Date strings:** weekday + month + day-of-month, no leading zero on the day. Examples used: full weekday `SUNDAY`, full month `JUNE`, 3-letter `SUN` / `JUN`. All uppercase.
-- **Cycling:** 4 designs in a ring. Controls: ‹ / › arrow buttons, a row of 4 dots (click to jump), and keyboard ← / →. Index wraps modulo 4.
-- **Persistence:** store the active face index in `localStorage` under key `deskclock.face`; restore on load (clamp to 0–3).
-- **Layout:** each face fills the viewport and is centered. All sizing uses `vmin` so it scales to any screen. Switching is via `display:none` ↔ `display:flex` (NOT opacity), with a transform-only entrance animation (`scale(1.03) → scale(1)`, 0.55s) so the active face is always visible even if animation is throttled.
+### 1. Minimal — 미니멀
+얇은 Jost 서체의 따뜻한 페이퍼 톤. 날짜·초·AM/PM을 곁들인 단정한 구성.
 
-## Faces / Views
+![Minimal face](screenshots/minimal.png)
 
-There are 4 faces. Each declares a `theme` of `light` or `dark`, which drives the nav control color.
+### 2. Retro Flip — 레트로 플립
+접혔다 펴지는 split-flap 애니메이션의 기계식 플립 시계.
 
-### Face 1 — Minimal / Modern  (theme: light)
-- **Background:** `#ECE9E1` (warm paper). **Text:** `#1b1a16`.
-- **Font:** Jost.
-- **Layout:** centered vertical stack, `gap: 5.5vmin`.
-  - **Date** (top): `SUNDAY · JUNE 14`, weight 400, `2.1vmin`, `letter-spacing: .55em`, uppercase, color `#8c887c`, `white-space:nowrap`.
-  - **Clock row** (flex, align top, `gap: 1.6vmin`):
-    - **Time** `9:42` (h12 + ":" + mm, no leading zero on hour): Jost weight **200**, `font-size: 24vmin`, `letter-spacing: -.01em`, tabular-nums.
-    - **Side column** (offset down with `padding-top: 3vmin`, `gap: 1.4vmin`):
-      - **Seconds** `21`: Jost 300, `5.2vmin`, color `#b3afa2`, tabular-nums.
-      - **AM/PM** `AM`: Jost 400, `2.6vmin`, `letter-spacing: .4em`, color `#1b1a16`.
-  - **Hairline rule** (bottom): `30vmin` wide, `1px`, color `#cdc9bd`.
+![Flip face](screenshots/flip.png)
 
-### Face 2 — Retro Flip  (theme: dark)
-A mechanical split-flap flip clock with a real fold/unfold animation.
-- **Background:** `radial-gradient(120% 90% at 50% 0%, #202024 0%, #141416 55%, #0e0e10 100%)`. **Text:** `#f3f1ea`.
-- **Font:** Archivo 700.
-- **Layout:** vertical stack, `gap: 4.2vmin`.
-  - **Clock row** (flex, align center, `gap: 1.6vmin`): hours group, blinking colon, minutes group, small seconds group.
-    - **Flip groups:** hours (2 digits, `09`), minutes (2 digits), seconds (2 digits). Hours show a **leading zero**. Seconds group is scaled `0.5` (`transform: scale(.5)`, origin center bottom).
-    - **Colon:** two dots stacked, each `1.5vmin` circle, color `#56565c`, `gap: 4vmin` between them; **blinks** 50% opacity on a 1s `steps(1,end)` loop.
-  - **Meta row** (flex, `gap: 2.4vmin`):
-    - **AM/PM pill** `PM`: Archivo 600, `2.4vmin`, `letter-spacing: .25em`, padding `.9vmin 1.8vmin`, radius `.8vmin`, background `#26262b`, text color **`#f3b14e`** (amber), soft shadow.
-    - **Date** `SUN · JUN 14`: weight 400, `2.2vmin`, `letter-spacing: .4em`, color `#9a968c`, uppercase, nowrap.
-- **Flip card geometry:** width `13vmin`, height `18vmin`, font-size `14vmin`, `perspective: 340px`, radius `1.4vmin`, drop-shadow `0 1.4vmin 2.6vmin rgba(0,0,0,.45)`.
-  - **Card halves:** top half background `#2b2b30` with a `1px solid rgba(0,0,0,.45)` bottom seam; bottom half background `#202024`. Each half is `height:50%; overflow:hidden`. The digit (`.num`) is absolutely positioned at full card height (`18vmin`, line-height `18vmin`); top halves anchor `top:0`, bottom halves anchor `bottom:0` — this clips each half to show the correct portion of the glyph. **Do not** use flex centering + translateY here (it causes the glyph to clip to only the top half — a bug we hit and fixed).
-  - **Animation (on digit change):** an upper flap folds down `rotateX(0 → -90deg)` over `0.3s ease-in` showing the OLD digit; then a lower flap unfolds `rotateX(90deg → 0)` over `0.3s ease-out` (0.3s delay) showing the NEW digit. On `animationend`, commit the new value to the static bottom half and top flap. `backface-visibility:hidden` on the flaps. Only animate the currently-visible face; set digits instantly (no animation) when switching to this face.
+### 3. Typography — 타이포그래피
+Anton 대형 활자의 에디토리얼 포스터. 세로 날짜와 버밀리언 포인트.
 
-### Face 3 — Typography  (theme: light)
-Editorial big-type poster.
-- **Background:** `#E7E2D6`. **Text:** `#15130d`. **Accent:** `#cf3f23` (vermilion).
-- **Font:** Anton (single weight).
-- **Layout:** full-bleed relative container, time centered; satellites absolutely positioned.
-  - **Time** `9:41` (no leading-zero hour): Anton, `font-size: 40vmin`, `line-height: .82`, `letter-spacing: -.02em`, tabular-nums.
-  - **AM/PM** `AM`: absolute `top:18% right:9%`, Anton `9vmin`, color `#cf3f23`.
-  - **Date** `SUNDAY  JUN 14` (full weekday + 3-letter month + day): absolute `left:9% bottom:11%`, **vertical** (`writing-mode: vertical-rl; transform: rotate(180deg)`), Anton `4.4vmin`, `letter-spacing:.06em`, color `#15130d`, uppercase.
-  - **Seconds** `33`: absolute `right:9% bottom:11%`, Anton `7vmin`, color `#cf3f23`, tabular-nums.
+![Typography face](screenshots/typography.png)
 
-### Face 4 — Neon / Glow  (theme: dark)
-- **Background:** `radial-gradient(120% 120% at 50% 42%, #0d1320 0%, #060810 60%, #030308 100%)`.
-- **Font:** Orbitron 700.
-- **Layout:** vertical stack, `gap: 4vmin`.
-  - **Clock** (flex, align baseline, `gap: 1vmin`):
-    - **Time** `9:41`: `24vmin`, color `#d6fbff`, cyan glow `text-shadow: 0 0 .6vmin #aef6ff, 0 0 1.6vmin #4fe9ff, 0 0 4vmin #16b6ff, 0 0 8vmin #0a86e0`. The colon character blinks (50% opacity, 1.1s `steps(1,end)`).
-    - **AM/PM** `AM`: Orbitron 500, `5vmin`, aligned to top (`margin-top: 2vmin`), color `#ffd2f4`, magenta glow `0 0 .6vmin #ff9be8, 0 0 2vmin #ff4fd0, 0 0 5vmin #e018b0`.
-  - **Meta row** (flex, `gap: 2.6vmin`):
-    - **Seconds** `34`: Orbitron 400, `3vmin`, color `#bff0ff`, glow `0 0 .5vmin #7fe8ff, 0 0 2vmin #29c6ff`.
-    - **Dot separator:** `1vmin` circle, `#5fe0ff`, `box-shadow: 0 0 1.4vmin #29c6ff`.
-    - **Date** `SUNDAY · JUNE 14`: Orbitron 400, `2.3vmin`, `letter-spacing: .34em`, color `#8fb6cf`, uppercase, nowrap.
+### 4. Neon — 네온
+Orbitron 서체에 시안/마젠타 글로우를 입힌 네온사인 시계.
 
-## Nav control (shared)
-- Fixed, bottom-center, `bottom: 4.5vmin`. Pill shape, translucent `backdrop-filter: blur(8px)` background.
-- Contents: ‹ button, 4 dots, › button. **No text labels** (design names are intentionally omitted).
-- Buttons min 30×30px hit area. Dots `1vmin` (min 8px); active dot uses full theme color and `scale(1.3)`.
-- **Theme-aware colors** via CSS vars set on the stage per active face:
-  - light → `--ui: #1b1a16`, `--ui-soft: rgba(27,26,22,.42)`, `--ui-bg: rgba(27,26,22,.06)`
-  - dark → `--ui: #f3f1ea`, `--ui-soft: rgba(243,241,234,.5)`, `--ui-bg: rgba(243,241,234,.1)`
-- **Auto-hide:** fade the nav out after 4s of no `mousemove`/`touchstart`/`keydown`; reveal on any of those (or on hover).
+![Neon face](screenshots/neon.png)
 
-## Interactions & Behavior
-- Arrow buttons → prev/next face (wrap). Dots → jump to face. Keyboard ←/→ → prev/next.
-- On switching to the flip face, render its digits instantly (no flip animation) so it doesn't animate from stale values.
-- Colons blink once per second/1.1s. Seconds update every second on every face.
-- Entrance animation per face is transform-only (scale) — never gate visibility on an opacity animation (it can freeze invisible in throttled/background render contexts).
+## 주요 기능
 
-## State Management
-- `activeFace: 0..3` — current design; persisted to `localStorage["deskclock.face"]`.
-- `now: Date` — re-read each tick; derive `h12`, `mm`, `ss`, `ampm`, weekday, month, day.
-- For the flip face, track the previous displayed value per digit to know whether to animate.
+- **4가지 시계 페이스** — 화면 터치(또는 ← / → 키)로 순환 전환
+- **선택 유지** — 마지막 페이스를 `localStorage`에 저장해 재실행 시 복원
+- **전체화면** — 상태바·내비게이션바를 숨긴 몰입형(immersive) 모드
+- **화면 꺼짐 방지** — 상시 켜두는 탁상시계용으로 화면이 자동으로 꺼지지 않음
+- **완전 오프라인** — 폰트까지 앱에 내장해 네트워크 없이 동작
+- **광폭 화면 대응** — 폴드 커버 화면 같은 초광폭 비율에서 콘텐츠를 키워 화면을 채움
 
-## Design Tokens
-**Colors**
-- Minimal: bg `#ECE9E1`, text `#1b1a16`, muted `#8c887c` / `#b3afa2`, rule `#cdc9bd`
-- Flip: bg gradient `#202024→#141416→#0e0e10`, card top `#2b2b30`, card bottom `#202024`, text `#f3f1ea`, amber `#f3b14e`, muted `#9a968c`, dots `#56565c`
-- Typography: bg `#E7E2D6`, text `#15130d`, accent `#cf3f23`
-- Neon: bg gradient `#0d1320→#060810→#030308`, cyan text `#d6fbff` (glows `#aef6ff/#4fe9ff/#16b6ff/#0a86e0`), magenta `#ffd2f4` (glows `#ff9be8/#ff4fd0/#e018b0`), seconds `#bff0ff`, date `#8fb6cf`, dot `#5fe0ff`
-- Nav: see theme vars above
+## 구조
 
-**Typography**
-- Jost (200/300/400) — Minimal & nav
-- Archivo (600/700) — Flip
-- Anton — Typography
-- Orbitron (400/500/700) — Neon
-- All from Google Fonts. Numeric displays use `font-variant-numeric: tabular-nums`.
+```
+app/                 웹앱 본체 (= Capacitor webDir)
+  index.html         4개 페이스 + 틱/전환/저장 로직 (단일 파일)
+  fonts/             내장 폰트 (Jost·Archivo·Orbitron 가변 + Anton, woff2)
+  manifest.json      PWA 매니페스트
+android/             Capacitor가 생성한 네이티브 Android 프로젝트
+docs/DESIGN.md       페이스별 상세 디자인 사양서
+screenshots/         위 캡처 이미지
+```
 
-**Spacing / radius / motion**
-- All measurements in `vmin` (see per-face specs). Card radius `1.4vmin`; AM/PM pill radius `.8vmin`; nav pill fully rounded.
-- Flip fold/unfold 0.3s + 0.3s; face entrance 0.55s `cubic-bezier(.2,.7,.2,1)`; colon blink 1s / 1.1s `steps(1,end)`.
+웹 버전은 `app/index.html`을 그대로 정적 호스팅하면 됩니다. (별도 공개 데모는 precipi.com 의 데모 목록에 포함)
 
-## Assets
-None — no images or icons. Glyphs (‹ › and dots) are text/CSS. Fonts load from Google Fonts.
+## Android APK 빌드
 
-## Files
-- `Desk Clock.html` — the complete reference prototype (all 4 faces, nav, ticking, persistence). Included in this bundle.
+[Capacitor](https://capacitorjs.com/) 기반입니다. **Node.js**, **JDK 17+**, **Android SDK**가 필요합니다.
 
-## Notes
-- `prefers-reduced-motion: reduce` disables the entrance animation; honor it in the rebuild.
-- Respect the system clock / locale if you localize, but the reference deliberately uses English uppercase weekday/month with 12-hour AM/PM.
+```bash
+npm install                       # 의존성 설치
+npx cap copy android              # app/ 의 웹 에셋을 네이티브로 복사
+cd android && ./gradlew assembleDebug
+# 산출물: android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+웹 에셋(`app/`)을 수정한 뒤에는 `npx cap copy android`로 다시 동기화하세요.
+
+### 기기에 설치 (사이드로딩)
+
+디버그 APK는 자체 서명되어 바로 사이드로딩할 수 있습니다. USB로 연결 후:
+
+```bash
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+> 디버그 빌드는 개인 사이드로딩/테스트용입니다. 스토어 배포에는 릴리스 서명이 별도로 필요합니다.
+
+## 기술 노트
+
+- **전체화면·배경**: 액티비티 테마를 `AppTheme.NoActionBar`(검정 배경)로 두고, `MainActivity`에서 `WindowInsetsControllerCompat`로 시스템 바를 숨기고 `FLAG_KEEP_SCREEN_ON`을 적용.
+- **오프라인 폰트**: Google Fonts를 링크하지 않고 woff2를 `@font-face`로 내장. (오프라인에서 플립 숫자 정렬이 깨지던 문제 해결)
+- **서비스워커 없음**: 번들 앱에서는 에셋이 이미 로컬이라 SW가 불필요하고 stale 캐시만 유발하므로 제거.
+
+페이스별 색상·간격·애니메이션 등 상세 사양은 [docs/DESIGN.md](docs/DESIGN.md)를 참고하세요.
