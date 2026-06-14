@@ -100,6 +100,9 @@
   .flip-card .num{
     position:absolute; left:0; width:100%; height:18vmin; line-height:18vmin;
     text-align:center; font-variant-numeric:tabular-nums;
+    /* 내장 가변 Archivo의 ascent가 커서 베이스라인이 낮게 잡혀 숫자 아래가 카드에
+       잘리는 것을 보정 — 모든 num에 동일 적용해 분할 이음새 정렬은 유지된다. */
+    transform:translateY(-2.5vmin);
   }
   .flip-card .top .num, .flip-card .top-flip .num{ top:0; }
   .flip-card .bottom .num, .flip-card .bottom-flip .num{ bottom:0; }
