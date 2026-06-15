@@ -9,8 +9,10 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Claude Code (로컬 설정)
-.claude/
+# Claude Code — 에이전트 정의는 공유, 로컬 설정/메모리는 제외
+.claude/*
+!.claude/agents/
+.claude/settings.local.json
 
 # Built APK / app bundles (루트로 복사한 산출물)
 *.apk
