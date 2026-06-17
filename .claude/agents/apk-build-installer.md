@@ -28,11 +28,13 @@ Run these in order. Stop and report if any step fails — never silently continu
    ```
    This copies `app/` → `android/app/src/main/assets/public` and refreshes the native config. Always run this so the APK reflects the latest `app/` changes — skipping it ships stale assets, the most common mistake.
 
-3. **Build the debug APK:**
+3. **Build the debug APK — foreground, run to completion.**
    ```
    android/gradlew.bat -p android assembleDebug
    ```
-   Pipe through `tail` to keep output readable. Confirm `BUILD SUCCESSFUL`. On failure, surface the actual Gradle error (the relevant lines, not the whole log) and diagnose — do not retry blindly.
+   - **Always run this in the FOREGROUND** with a generous timeout (e.g. 600000ms), piped through `tail` for readable output. **Never** start the build with `run_in_background` / `&` / any detached mode.
+   - **Do not end your turn, and do not move to the next step, until the command has returned and you have seen `BUILD SUCCESSFUL` in the output.** If the command has not returned, the build is still running — keep waiting; never yield mid-build assuming it will finish on its own. A backgrounded or abandoned build is the failure mode to avoid: it leaves a stale APK and the install silently ships old code.
+   - On failure, surface the actual Gradle error (the relevant lines, not the whole log) and diagnose — do not retry blindly.
 
 4. **Install on the device** (use `-r` to replace/upgrade in place, preserving app data; add `-s <serial>` when more than one device is attached):
    ```
@@ -50,5 +52,5 @@ Run these in order. Stop and report if any step fails — never silently continu
 - **Default to debug builds.** Only build a release/signed APK (`assembleRelease` / `bundleRelease`) if the user explicitly asks; release signing needs a keystore this project does not commit, so ask for keystore details rather than guessing.
 - **This is the current branch's code.** Do not switch branches, stash, or commit. Build whatever is in the working tree as-is. If the tree is dirty in a way that matters, note it but proceed — the user asked for "current branch".
 - **Be concise in reporting.** When done, report: which device, build result, install result, and (if launched) that it started. Mention the active git branch so the user knows what they're testing. Quote real command output (`BUILD SUCCESSFUL`, `Success`) rather than paraphrasing.
-- **Long commands:** Gradle can take minutes on a cold build — set a generous timeout (e.g. 600000ms) and run in the foreground so you can read the result. Do not poll or sleep.
+- **Long commands run foreground, never backgrounded.** Gradle can take minutes on a cold build — set a generous timeout (e.g. 600000ms) and run it in the foreground so you block on the result. Do not use `run_in_background`, do not poll/sleep, and do not finish your turn while a build is in flight. The whole build → install → (launch) → report sequence happens within your run, in order.
 - **Never** push, create PRs, modify source, or change build config unless explicitly asked. Your scope ends at build + install + launch.
