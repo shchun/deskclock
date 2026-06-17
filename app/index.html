@@ -266,6 +266,97 @@
   .f8-date{ font-size:2.3vmin; letter-spacing:.34em; white-space:nowrap; color:#8fb6cf; text-transform:uppercase; }
 
   /* ======================================================= */
+  /* FACE 9 — APPLE LIQUID GLASS                             */
+  /* ======================================================= */
+  /* 반투명 프로스티드 글래스 + 움직이는 컬러 굴절 + 스페큘러 광택 */
+  #face9{ background:#0b1020; color:#fff; overflow:hidden; }
+  /* 유리가 굴절할 움직이는 컬러 블롭 배경 */
+  #face9::before{
+    content:''; position:absolute; inset:-25%;
+    background:
+      radial-gradient(40vmin 40vmin at 25% 30%, #7b5cff 0%, transparent 60%),
+      radial-gradient(45vmin 45vmin at 75% 25%, #ff5ca8 0%, transparent 60%),
+      radial-gradient(50vmin 50vmin at 70% 80%, #2ad0ff 0%, transparent 60%),
+      radial-gradient(42vmin 42vmin at 20% 78%, #36e0a6 0%, transparent 60%);
+    filter:blur(2vmin) saturate(140%);
+    animation:lgFloat 18s ease-in-out infinite alternate;
+  }
+  @keyframes lgFloat{
+    from{ transform:translate(-3%,-2%) scale(1.05); }
+    to{   transform:translate(4%,3%)  scale(1.16); }
+  }
+  @media (prefers-reduced-motion:reduce){ #face9::before{ animation:none; } }
+
+  .f9-wrap{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:3.4vmin; }
+  /* 메인 글래스 패널 */
+  .f9-glass{
+    position:relative; display:flex; flex-direction:column; align-items:center; gap:1.4vmin;
+    padding:5vmin 7vmin; border-radius:6vmin;
+    background:linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+    backdrop-filter:blur(4vmin) saturate(180%); -webkit-backdrop-filter:blur(4vmin) saturate(180%);
+    border:1px solid rgba(255,255,255,.35);
+    box-shadow:0 4vmin 8vmin rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(255,255,255,.12);
+  }
+  /* 상단 스페큘러 하이라이트(유리 광택) */
+  .f9-glass::before{
+    content:''; position:absolute; left:6%; right:6%; top:0; height:42%; pointer-events:none;
+    border-radius:6vmin 6vmin 50% 50%/6vmin 6vmin 18vmin 18vmin;
+    background:linear-gradient(180deg, rgba(255,255,255,.4), rgba(255,255,255,0));
+  }
+  .f9-time{
+    font-family:'Jost',system-ui,sans-serif; font-weight:300;
+    font-size:22vmin; line-height:.9; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+    color:#fff; text-shadow:0 .4vmin 2vmin rgba(0,0,0,.25); white-space:nowrap;
+  }
+  .f9-colon{ animation:f9blink 1.2s steps(1,end) infinite; }
+  @keyframes f9blink{ 50%{ opacity:.25; } }
+  .f9-ampm{ font-size:5vmin; font-weight:400; opacity:.85; margin-left:1.6vmin; }
+  .f9-sec{ font-family:'Jost',system-ui,sans-serif; font-weight:400; font-size:4vmin; font-variant-numeric:tabular-nums; opacity:.65; letter-spacing:.1em; }
+  /* 날짜 — 작은 글래스 알약 */
+  .f9-date{
+    font-family:'Jost',system-ui,sans-serif; font-weight:400; font-size:2.4vmin;
+    letter-spacing:.28em; text-transform:uppercase; white-space:nowrap; color:#fff;
+    padding:1.3vmin 3vmin; border-radius:100px;
+    background:rgba(255,255,255,.12); backdrop-filter:blur(2vmin) saturate(160%); -webkit-backdrop-filter:blur(2vmin) saturate(160%);
+    border:1px solid rgba(255,255,255,.3);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 1vmin 3vmin rgba(0,0,0,.25);
+  }
+
+  /* ======================================================= */
+  /* FACE 10 — TERMINAL                                      */
+  /* ======================================================= */
+  /* 검은 배경 + 초록 모노스페이스 + CRT 글로우 + 깜빡이는 블록 커서 */
+  #face10{ background:#020602; color:#33ff66; overflow:hidden; }
+  /* CRT 스캔라인 */
+  #face10::after{
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px);
+  }
+  .f10-wrap{
+    position:relative; z-index:1; text-align:left;
+    font-family:ui-monospace,'Cascadia Mono','Consolas','Courier New',monospace;
+    line-height:1.5; text-shadow:0 0 1vmin rgba(51,255,102,.55);
+  }
+  .f10-line{ font-size:3vmin; letter-spacing:.02em; white-space:nowrap; }
+  .f10-prompt{ color:#7dffb0; }
+  .f10-path{ color:#5ad1ff; }
+  .f10-cmd{ color:#eafff0; }
+  .f10-dim{ color:#1f9c4a; }
+  .f10-time{
+    font-size:16vmin; font-weight:700; letter-spacing:.01em; line-height:1.05;
+    font-variant-numeric:tabular-nums; white-space:nowrap;
+    text-shadow:0 0 1.6vmin rgba(51,255,102,.7), 0 0 .4vmin rgba(51,255,102,.9);
+  }
+  .f10-date{ font-size:3vmin; color:#33ff66; letter-spacing:.18em; text-transform:uppercase; white-space:nowrap; }
+  .f10-cursor{
+    display:inline-block; width:1.1ch; height:1em; vertical-align:-.12em;
+    background:#33ff66; box-shadow:0 0 1.4vmin rgba(51,255,102,.8);
+    animation:f10blink 1.06s steps(1,end) infinite;
+  }
+  @keyframes f10blink{ 50%{ opacity:0; } }
+  @media (prefers-reduced-motion:reduce){ .f10-cursor{ animation:none; } }
+
+  /* ======================================================= */
   /* NAV                                                     */
   /* ======================================================= */
   .stage[data-theme="light"]{ --ui:#0a0a0a; --ui-soft:rgba(10,10,10,.4); --ui-bg:rgba(255,255,255,.55); }
@@ -436,6 +527,27 @@
       </div>
     </section>
 
+    <!-- FACE 9 — APPLE LIQUID GLASS -->
+    <section class="face" id="face9">
+      <div class="f9-wrap">
+        <div class="f9-glass">
+          <div class="f9-time" id="f9-time">2<span class="f9-colon">:</span>30<span class="f9-ampm">PM</span></div>
+          <div class="f9-sec" id="f9-sec">00</div>
+        </div>
+        <div class="f9-date" id="f9-date">SUNDAY · JUNE 14</div>
+      </div>
+    </section>
+
+    <!-- FACE 10 — TERMINAL -->
+    <section class="face" id="face10">
+      <div class="f10-wrap">
+        <div class="f10-line"><span class="f10-prompt">visitor@deskclock</span>:<span class="f10-path">~</span>$ <span class="f10-cmd">clock --now</span></div>
+        <div class="f10-time" id="f10-time">14:30:08</div>
+        <div class="f10-line f10-dim" id="f10-date">SUNDAY · JUNE 14</div>
+        <div class="f10-line"><span class="f10-prompt">visitor@deskclock</span>:<span class="f10-path">~</span>$ <span class="f10-cursor"></span></div>
+      </div>
+    </section>
+
   </div>
 
   <!-- NAV (위치 표시용 점만 — 화면을 터치하면 다음 시계로 전환) -->
@@ -454,6 +566,8 @@
     { id:'face6', name:'Retro Flip',      theme:'dark'  },
     { id:'face7', name:'Typography',      theme:'light' },
     { id:'face8', name:'Neon',            theme:'dark'  },
+    { id:'face9', name:'Liquid Glass',    theme:'dark'  },
+    { id:'face10',name:'Terminal',        theme:'dark'  },
   ];
 
   const stage = document.getElementById('stage');
@@ -600,6 +714,8 @@
   const f6a=el('f6-ampm'),f6d=el('f6-date');
   const f7t=el('f7-time'),f7a=el('f7-ampm'),f7d=el('f7-date'),f7s=el('f7-sec');
   const f8t=el('f8-time'),f8a=el('f8-ampm'),f8s=el('f8-sec'),f8d=el('f8-date');
+  const f9t=el('f9-time'),f9s=el('f9-sec'),f9d=el('f9-date');
+  const f10t=el('f10-time'),f10d=el('f10-date');
 
   let cur={h:'',m:'',s:''};
 
@@ -648,6 +764,12 @@
     f8t.innerHTML=h12+'<span class="f8-colon">:</span>'+mm;
     f8a.textContent=ampm; f8s.textContent=ss;
     f8d.textContent=dayL+' · '+monL+' '+dn;
+    // face 9 (apple liquid glass)
+    f9t.innerHTML=h12+'<span class="f9-colon">:</span>'+mm+'<span class="f9-ampm">'+ampm+'</span>';
+    f9s.textContent=ss; f9d.textContent=dayL+' · '+monL+' '+dn;
+    // face 10 (terminal) — 24h HH:MM:SS
+    f10t.textContent=pad(h)+':'+mm+':'+ss;
+    f10d.textContent=dayL+' · '+monL+' '+dn;
 
     // 시 자릿수(예: 9→10, 12→1)가 바뀌면 시간 폭이 달라지므로 다시 맞춤
     const hlen = String(h12).length;
