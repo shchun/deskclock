@@ -552,11 +552,14 @@
   .stage.idle .nav{ opacity:0; pointer-events:none; }
   .nav:hover{ opacity:1 !important; }
 
-  /* 임시(PoC): 소나 테스트 진입 링크 — 검증 후 이 블록 삭제 */
-  .nav .sonar-link{
-    font-size:1.2vmin; letter-spacing:.3em; text-transform:uppercase;
-    color:var(--ui-soft); text-decoration:none; padding-left:1.5vmin;
-    font-family:'Jost',sans-serif; font-weight:400;
+  /* 임시(PoC): 소나 테스트 진입 링크 — 우측 하단 반투명 둥근 버튼(검증용), 검증 후 이 블록 삭제 */
+  .sonar-link{
+    position:fixed; bottom:24px; right:24px; z-index:100;
+    font-size:16px; letter-spacing:.18em; text-transform:uppercase;
+    color:#fff; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.35);
+    border-radius:16px; padding:16px 26px; text-decoration:none;
+    font-family:'Jost',sans-serif; font-weight:500;
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   }
 
   /* 화면 비율에 맞춘 확대는 JS(fitActive)가 담당한다 — 콘텐츠를 측정해 어떤
@@ -753,10 +756,10 @@
   </div>
 
   <!-- NAV (위치 표시용 점만 — 화면을 터치하면 다음 시계로 전환) -->
+  <!-- 임시(PoC): 초음파 소나 테스트 진입로 — 우측 하단 반투명 버튼(검증용), 검증 후 삭제 -->
+  <a href="sonar-test.html" class="sonar-link" onclick="event.stopPropagation()">SONAR</a>
   <nav class="nav" id="nav">
     <div class="dots" id="dots"></div>
-    <!-- 임시(PoC): 초음파 소나 테스트 페이지 진입로 — 검증 후 이 줄 삭제 -->
-    <a href="sonar-test.html" class="sonar-link" onclick="event.stopPropagation()">SONAR</a>
   </nav>
 
 <script>
