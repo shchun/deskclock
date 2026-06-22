@@ -31,6 +31,9 @@ public class MainActivity extends BridgeActivity {
             getBridge().getWebView().setBackgroundColor(Color.BLACK);
             // 웹(소나 감지)에서 화면 밝기를 제어하도록 JS 브리지 노출: window.DeskClock.setBrightness("0.01")
             getBridge().getWebView().addJavascriptInterface(new BrightnessBridge(), "DeskClock");
+            // 초음파 소나를 사용자 터치 없이 로드 직후 자동 가동하기 위해
+            // 미디어(AudioContext/오디오) 자동재생의 제스처 요구를 해제한다.
+            getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
         }
         // 초음파 소나용 마이크 권한을 시작 시 요청 — 허용돼야 WebView getUserMedia가 동작
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
