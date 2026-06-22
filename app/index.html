@@ -554,10 +554,10 @@
 
   /* 임시(PoC): 소나 테스트 진입 링크 — 우측 하단 반투명 둥근 버튼(검증용), 검증 후 이 블록 삭제 */
   .sonar-link{
-    position:fixed; bottom:24px; right:24px; z-index:100;
-    font-size:16px; letter-spacing:.18em; text-transform:uppercase;
-    color:#fff; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.35);
-    border-radius:16px; padding:16px 26px; text-decoration:none;
+    position:fixed; bottom:18px; right:18px; z-index:100;
+    font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+    color:#fff; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.3);
+    border-radius:12px; padding:9px 15px; text-decoration:none;
     font-family:'Jost',sans-serif; font-weight:500;
     backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   }
@@ -1001,6 +1001,84 @@
   // align to second boundary, then tick each second
   function loop(){ tick(); setTimeout(loop, 1000 - (Date.now()%1000)); }
   setTimeout(loop, 1000 - (Date.now()%1000));
+})();
+</script>
+
+<!-- ───────────────────────────────────────────────────────────────────────
+  소나 재실 감지 → 화면 자동 디밍 (백그라운드). 화면엔 UI 없음.
+  - 스피커로 초음파 톤 출력 + 마이크로 도플러 분석(움직임 세기 = 사이드밴드−노이즈).
+  - 움직임 후 10분(디밍 지연) 무동작이면 밝기 최소, 움직이면 즉시 원래대로.
+  - 캐리어 주파수는 SONAR 테스트 페이지의 '주파수 응답 측정'이 단말별로 보정해 저장한 값을 공유.
+  - 오디오는 브라우저 정책상 사용자 제스처가 있어야 시작 → 첫 터치/키에서 가동.
+  - 밝기 제어는 네이티브 브리지 window.DeskClock.setBrightness (MainActivity).
+─────────────────────────────────────────────────────────────────────── -->
+<script>
+(function(){
+  'use strict';
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+
+  const CARRIER_KEY = 'sonar.carrier';
+  const THRESHOLD   = 0.45;        // 움직임 판정 임계값(테스트로 보정한 값)
+  const DIM_DELAY   = 600000;      // 무동작 10분 후 디밍
+  const DIM_LEVEL   = 0.01;        // 디밍 시 밝기(최소)
+  const SIDEBAND_HZ = 220, GUARD_HZ = 30, GAIN = 0.25;
+
+  let analyser=null, freqData=null, binHz=0, carrierHz=19500;
+  let metricEMA=0, lastMotionAt=0, brightState=null, started=false;
+  const db2lin = db => Math.pow(10, db/20);
+  const setBrightness = v => { try { window.DeskClock && window.DeskClock.setBrightness && window.DeskClock.setBrightness(String(v)); } catch(e){} };
+
+  async function start(){
+    if (started) return; started = true;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      await ctx.resume();
+      const mic = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1 } });
+      analyser = ctx.createAnalyser(); analyser.fftSize = 16384; analyser.smoothingTimeConstant = 0;
+      binHz = ctx.sampleRate / analyser.fftSize; freqData = new Float32Array(analyser.frequencyBinCount);
+      ctx.createMediaStreamSource(mic).connect(analyser);
+      carrierHz = +(localStorage.getItem(CARRIER_KEY) || 19500);
+      const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = carrierHz;
+      const gain = ctx.createGain(); gain.gain.value = GAIN;
+      osc.connect(gain).connect(ctx.destination); osc.start();
+      lastMotionAt = performance.now();
+      loop();
+    } catch(e) { started = false; }
+  }
+
+  function loop(){
+    if (!analyser) return;
+    analyser.getFloatFrequencyData(freqData);
+    const N = freqData.length;
+    const cb = Math.round(carrierHz / binHz);
+    const halfW = Math.max(2, Math.round(SIDEBAND_HZ / binHz));
+    const guard = Math.max(1, Math.round(GUARD_HZ / binHz));
+    let ns=0, nc=0;
+    for (let k=cb+halfW+4; k<=cb+3*halfW+4 && k<N; k++){ ns+=freqData[k]; nc++; }
+    for (let k=cb-halfW-4; k>=cb-3*halfW-4 && k>=0; k--){ ns+=freqData[k]; nc++; }
+    const noiseDb = nc ? ns/nc : -140, noiseLin = db2lin(noiseDb);
+    const carrierDb = freqData[cb];
+    const haveSignal = (carrierDb - noiseDb) > 6;
+    let ss=0, cnt=0;
+    for (let k=cb-halfW; k<=cb+halfW; k++){ if (k<0||k>=N) continue; if (Math.abs(k-cb)<=guard) continue; ss+=db2lin(freqData[k]); cnt++; }
+    const sideLin = cnt ? ss/cnt : 0;
+    const raw = (haveSignal && noiseLin>0) ? Math.max(0,(sideLin-noiseLin)/noiseLin) : 0;
+    metricEMA += (raw - metricEMA) * 0.3;
+    const metric = haveSignal ? metricEMA : 0;
+    if (haveSignal && metric > THRESHOLD) lastMotionAt = performance.now();
+    if (haveSignal) {  // 신호 없으면(캐리어 미포착) 현 밝기 유지
+      const active = (performance.now() - lastMotionAt) < DIM_DELAY;
+      const next = active ? 'on' : 'dim';
+      if (next !== brightState) { brightState = next; setBrightness(active ? -1 : DIM_LEVEL); }
+    }
+    setTimeout(loop, 120);   // ~8Hz: 감지 충분 + CPU 절감
+  }
+
+  // 오디오 시작(첫 제스처) + 화면 이탈 시 밝기 복구
+  window.addEventListener('pointerdown', start, { once:true });
+  window.addEventListener('keydown', start, { once:true });
+  window.addEventListener('pagehide', () => setBrightness(-1));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) setBrightness(-1); });
 })();
 </script>
 </body>
