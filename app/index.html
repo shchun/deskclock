@@ -552,6 +552,13 @@
   .stage.idle .nav{ opacity:0; pointer-events:none; }
   .nav:hover{ opacity:1 !important; }
 
+  /* 임시(PoC): 소나 테스트 진입 링크 — 검증 후 이 블록 삭제 */
+  .nav .sonar-link{
+    font-size:1.2vmin; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--ui-soft); text-decoration:none; padding-left:1.5vmin;
+    font-family:'Jost',sans-serif; font-weight:400;
+  }
+
   /* 화면 비율에 맞춘 확대는 JS(fitActive)가 담당한다 — 콘텐츠를 측정해 어떤
      비율(세로 바/가로 바/일반 폰)에서도 화면의 ~92%에 맞춰 키운다(넘치지 않게). */
 </style>
@@ -748,6 +755,8 @@
   <!-- NAV (위치 표시용 점만 — 화면을 터치하면 다음 시계로 전환) -->
   <nav class="nav" id="nav">
     <div class="dots" id="dots"></div>
+    <!-- 임시(PoC): 초음파 소나 테스트 페이지 진입로 — 검증 후 이 줄 삭제 -->
+    <a href="sonar-test.html" class="sonar-link" onclick="event.stopPropagation()">SONAR</a>
   </nav>
 
 <script>

@@ -1,10 +1,15 @@
 package com.precipi.deskclock;
 
+import android.Manifest;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -12,6 +17,8 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+
+    private static final int REQ_MIC = 1001;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -22,6 +29,14 @@ public class MainActivity extends BridgeActivity {
         getWindow().getDecorView().setBackgroundColor(Color.BLACK);
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().setBackgroundColor(Color.BLACK);
+            // 웹(소나 감지)에서 화면 밝기를 제어하도록 JS 브리지 노출: window.DeskClock.setBrightness("0.01")
+            getBridge().getWebView().addJavascriptInterface(new BrightnessBridge(), "DeskClock");
+        }
+        // 초음파 소나용 마이크 권한을 시작 시 요청 — 허용돼야 WebView getUserMedia가 동작
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this, new String[]{ Manifest.permission.RECORD_AUDIO }, REQ_MIC);
         }
         hideSystemUI();
     }
@@ -44,6 +59,23 @@ public class MainActivity extends BridgeActivity {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) hideSystemUI();
+    }
+
+    // 웹에서 호출하는 화면 밝기 제어 브리지.
+    // v < 0 이면 시스템 기본(원래대로), 0~1 이면 해당 밝기로 강제(최소~최대).
+    private class BrightnessBridge {
+        @JavascriptInterface
+        public void setBrightness(String value) {
+            final float v;
+            try { v = Float.parseFloat(value); } catch (Exception e) { return; }
+            runOnUiThread(() -> {
+                WindowManager.LayoutParams lp = getWindow().getAttributes();
+                lp.screenBrightness = v < 0
+                        ? WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+                        : Math.max(0.004f, Math.min(1f, v));
+                getWindow().setAttributes(lp);
+            });
+        }
     }
 
     // 상태바·내비게이션바를 숨긴 몰입형(immersive) 전체화면. 가장자리에서 쓸어내리면 잠깐 나타남.

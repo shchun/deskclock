@@ -44,4 +44,10 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 초음파 소나(사람 감지)용 마이크 — getUserMedia 입력 -->
+    <!-- Capacitor WebView는 오디오 캡처 시 RECORD_AUDIO + MODIFY_AUDIO_SETTINGS를 함께
+         요청하며 둘 다 허용돼야 grant됨. MODIFY_AUDIO_SETTINGS는 normal 권한이라
+         선언만 하면 설치 시 자동 허용된다. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 </manifest>
