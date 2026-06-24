@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-An **offline Android desk-clock app**: a single HTML screen (`app/index.html`) wrapped in a Capacitor WebView. No network, no backend, no build step for the web layer — the `app/` directory ships as-is. Touching the screen (or ← / → keys) cycles through 4 clock faces; the selected face persists in `localStorage` (`deskclock.face`).
+An **offline Android desk-clock app**: a single HTML screen (`app/index.html`) wrapped in a Capacitor WebView. No network, no backend, no build step for the web layer — the `app/` directory ships as-is. Touching the screen (or ← / → keys) cycles through 10 clock faces; the selected face persists in `localStorage` (`deskclock.face`, stored as the face **id** — a legacy numeric index is still accepted on read).
 
 App id: `com.precipi.deskclock` · Capacitor `webDir` is `app/`.
 
@@ -13,7 +13,7 @@ App id: `com.precipi.deskclock` · Capacitor `webDir` is `app/`.
 ```
 deskclock/
 ├── app/                        # Capacitor webDir — entire web app
-│   ├── index.html              # 508 lines: HTML + CSS + JS (the whole app)
+│   ├── index.html              # ~1090 lines: HTML + CSS + JS (the whole app)
 │   ├── manifest.json           # PWA manifest (13 lines)
 │   ├── icons/                  # SVG icons (192 & 512) for manifest
 │   └── fonts/                  # 4 WOFF2 fonts (all embedded for offline use)
@@ -79,26 +79,32 @@ Icon design: minimal clock face at 10:10 position, white circle/hands, amber cen
 
 ### Web layer (`app/index.html` — the entire app)
 
-The file is ~508 lines structured as: `<style>` block (CSS for all 4 faces) → `<body>` markup (4 face sections + nav) → `<script>` IIFE (all logic). No framework, no modules, no build step.
+The file is ~1090 lines structured as: `<style>` block (CSS for all 10 faces) → `<body>` markup (10 face sections + nav) → `<script>` IIFE (clock logic) → a second `<script>` (sonar presence-dimming, background). No framework, no modules, no build step.
 
-**`FACES` array** (~line 312) is the source of truth: each entry is `{ id, name, theme }`.
+**`FACES` array** is the source of truth and is **data-driven**: each entry is `{ id, name, theme, fit, render }`, where `render(parts, refs)` updates that face and `fit` holds its scaling config (see below). At init each face's update nodes are auto-collected from `[data-bind]` attributes into `f.r` — there are no hand-written per-element `const` refs.
 
-| id    | Name        | Font     | Theme |
-|-------|-------------|----------|-------|
-| face1 | Minimal     | Jost     | Light — warm paper (#ECE9E1) |
-| face2 | Retro Flip  | Archivo  | Dark — mechanical flip animation |
-| face3 | Typography  | Anton    | Light — large editorial poster |
-| face4 | Neon        | Orbitron | Dark — cyan/magenta glow shadows |
+| id     | Name            | Font     | Theme |
+|--------|-----------------|----------|-------|
+| face1  | Brutal Minimal  | Archivo  | Light — vivid yellow (#FFED47), hard offset shadows |
+| face3  | Brutal Type     | Anton    | Light — hot-pink offset poster |
+| face4  | Brutal Electric | Orbitron | Dark — navy grid, lime/blue blocks |
+| face5  | Minimal         | Jost     | Light — warm paper (#ECE9E1) |
+| face6  | Retro Flip      | Archivo  | Dark — mechanical split-flap animation |
+| face7  | Typography      | Anton    | Light — large editorial poster |
+| face8  | Neon            | Orbitron | Dark — cyan/magenta glow shadows |
+| face9  | Liquid Glass    | Jost     | Dark — frosted glass + refracting blobs |
+| face10 | Terminal        | monospace| Dark — green CRT, blinking cursor |
+| face11 | Liquid Goo      | Jost     | Dark — SVG metaball blobs (violet) |
 
-Each face is a `#faceN` section with its own scoped CSS block; only `.active` is shown.
+Faces are intentionally numbered `face1,3,4,…,11` (not contiguous); `face2` does not exist. Each face is a `#faceN` section with its own scoped CSS block; only `.active` is shown.
 
 **Key functions:**
 
-- **`go(i)`** — switches faces, toggles `.active`/nav dots, sets `stage.dataset.theme`, persists to `localStorage`. Re-renders flip face without animation on entry.
-- **`tick()`** — updates all 4 faces with current time (h12, mm, ss, ampm, date strings). Uses DAYS/DAYS3/MON/MON3 constant arrays for full and 3-letter weekday/month.
+- **`go(i)`** — switches faces, toggles `.active`/nav dots, sets `stage.dataset.theme`, persists the face **id** to `localStorage` (see `loadActive()` for the id→index lookup with legacy-numeric fallback). Re-renders flip face without animation on entry.
+- **`tick()`** — builds one shared **`parts`** model (`h12, hh, mm, ss, ampm, h24` + three pre-formatted date strings `dlongDot`/`dlongMon3`/`dshort`), then calls every face's `render(parts, f.r)`. Per-face update logic lives in the `FACES` entries, not in `tick()`. Uses DAYS/DAYS3/MON/MON3 constant arrays for full and 3-letter weekday/month. (Colon/AM-PM spans are static in markup — `render` only sets text on the bound number nodes, so no `innerHTML` is rebuilt each second.)
 - **`loop()`** — drives `tick()` on the second boundary: `setTimeout(loop, 1000 - Date.now() % 1000)` instead of `setInterval`, so seconds never drift.
-- **`fitActive()` / `fitEl()`** — scale content to fill the viewport. Faces are sized in `vmin`, which reads small on ultra-wide screens (target: Galaxy Z Fold cover display, ~2316×904). `fitEl` computes a scale factor from the actual bounding box so content fills ~92% of the screen without overflow. Re-runs on resize, font load, and when the hour digit count changes (1- vs 2-digit hours).
-- **Flip clock** (`buildFlip` / `setCard` / `setGroup`) — CSS split-flap animation driven by `animationend` events. Each digit has fold (0.3 s) + unfold (0.3 s) phases. Only animates while `face2` is active.
+- **`fitActive()` / `fitEl()`** — scale content to fill the viewport. Faces are sized in `vmin`, which reads small on ultra-wide screens (target: Galaxy Z Fold cover display, ~2316×904). `fitActive` reads the active face's `fit` config (`{sel, aw, ah, max}`) — no per-id branching — and `fitEl` computes a scale factor from the actual bounding box so content fills the available box without overflow. Re-runs on resize, font load, and when the hour digit count changes (1- vs 2-digit hours).
+- **Flip clock** (`buildFlip` / `setCard` / `setGroup` / `renderFlip`) — CSS split-flap animation driven by `animationend` events. Each digit has fold (0.3 s) + unfold (0.3 s) phases. `face6.render` calls `renderFlip()`, which only animates while `face6` is active.
 - **Nav idle-hide** — shows on any touch/mouse/key event, auto-hides after 4 s.
 - **SW cleanup** — on first load, unregisters any stale service worker (SW was removed to prevent stale-cache bugs in the bundled APK).
 - **`prefers-reduced-motion`** — flip animation is suppressed when the system accessibility setting is on.

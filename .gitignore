@@ -1,6 +1,9 @@
 # Node
 node_modules/
 
+# Lavish editor 작업 폴더(임시) — 스펙 산출물은 docs/ 로 옮겨 커밋
+.lavish/
+
 # OS
 .DS_Store
 Thumbs.db

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Desk Clock — Face 레이어 리팩터링 기술 계획</title>
+<style>
+  :root{
+    --bg:#0c0c0e; --panel:#161618; --panel2:#1d1d20;
+    --ink:#f3f1ea; --dim:#9a968c; --line:#2a2a2e;
+    --amber:#f3b14e; --yellow:#FFED47; --pink:#FF1F7D; --lime:#C8FF00; --cyan:#4fe9ff;
+    --good:#2ecc40; --bad:#ff4136;
+    --mono:ui-monospace,'Cascadia Mono','Consolas','Courier New',monospace;
+    --sans:'Segoe UI',system-ui,-apple-system,sans-serif;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--sans);
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+    padding:48px 24px 120px;
+  }
+  .wrap{ max-width:980px; margin:0 auto; }
+
+  /* ---- header ---- */
+  .kicker{ font-family:var(--mono); font-size:12px; letter-spacing:.34em; text-transform:uppercase;
+    color:var(--amber); margin-bottom:14px; }
+  h1{ font-size:38px; line-height:1.1; letter-spacing:-.02em; font-weight:800; }
+  h1 .accent{ background:var(--yellow); color:#0a0a0a; padding:0 10px; box-shadow:5px 5px 0 #0a0a0a; }
+  .sub{ color:var(--dim); margin-top:18px; max-width:62ch; }
+  .meta-row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+  .chip{ font-family:var(--mono); font-size:12px; letter-spacing:.04em;
+    background:var(--panel); border:1px solid var(--line); padding:6px 12px; color:var(--dim); }
+  .chip b{ color:var(--ink); font-weight:700; }
+
+  /* ---- section ---- */
+  section{ margin-top:52px; }
+  .sec-h{ display:flex; align-items:baseline; gap:14px; margin-bottom:20px;
+    border-bottom:2px solid var(--line); padding-bottom:12px; }
+  .sec-n{ font-family:var(--mono); font-size:14px; color:var(--amber); font-weight:700; }
+  .sec-t{ font-size:22px; font-weight:700; letter-spacing:-.01em; }
+
+  /* ---- cards / grid ---- */
+  .grid{ display:grid; gap:14px; }
+  .g2{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .g3{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+  @media(max-width:760px){ .g2,.g3{ grid-template-columns:1fr; } }
+  .card{ background:var(--panel); border:1px solid var(--line); padding:18px 18px; }
+  .card h3{ font-size:15px; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+  .card p{ color:var(--dim); font-size:14px; }
+  .tag{ font-family:var(--mono); font-size:11px; padding:2px 7px; letter-spacing:.06em;
+    text-transform:uppercase; }
+  .tag.dup{ background:rgba(255,31,125,.16); color:#ff84b6; }
+  .tag.smell{ background:rgba(243,177,78,.16); color:var(--amber); }
+  .tag.doc{ background:rgba(79,233,255,.14); color:var(--cyan); }
+
+  /* metric tiles */
+  .tiles{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+  @media(max-width:760px){ .tiles{ grid-template-columns:repeat(2,1fr); } }
+  .tile{ background:var(--panel2); border:1px solid var(--line); padding:16px; }
+  .tile .num{ font-family:var(--mono); font-size:30px; font-weight:800; line-height:1; color:var(--yellow); }
+  .tile .lbl{ font-size:12px; color:var(--dim); margin-top:8px; letter-spacing:.02em; }
+
+  /* code */
+  code,pre{ font-family:var(--mono); font-size:12.5px; }
+  pre{ background:#0a0a0c; border:1px solid var(--line); border-left:3px solid var(--amber);
+    padding:14px 16px; overflow-x:auto; color:#d6d3c8; margin-top:10px; }
+  pre .c{ color:#6b6b72; }
+  pre .k{ color:var(--cyan); }
+  pre .s{ color:var(--lime); }
+  pre .del{ color:#ff8a8a; }
+  pre .add{ color:#9ff0a8; }
+  .inline{ background:#0a0a0c; border:1px solid var(--line); padding:1px 6px; color:var(--amber); }
+
+  /* table */
+  table{ width:100%; border-collapse:collapse; margin-top:6px; font-size:13.5px; }
+  th,td{ text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); }
+  td.y{ color:var(--good); } td.n{ color:var(--bad); }
+
+  /* option cards */
+  .opt{ border:1px solid var(--line); background:var(--panel); position:relative; overflow:hidden; }
+  .opt .bar{ height:5px; }
+  .opt.A .bar{ background:var(--cyan); } .opt.B .bar{ background:var(--lime); } .opt.C .bar{ background:var(--pink); }
+  .opt .body{ padding:18px; }
+  .opt h3{ font-size:16px; margin-bottom:4px; }
+  .opt .effort{ font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:.06em; }
+  .opt ul{ list-style:none; margin-top:12px; font-size:13px; }
+  .opt li{ padding:4px 0 4px 20px; position:relative; color:var(--dim); }
+  .opt li.pro::before{ content:'+'; position:absolute; left:0; color:var(--good); font-weight:700; }
+  .opt li.con::before{ content:'−'; position:absolute; left:0; color:var(--bad); font-weight:700; }
+  .reco{ display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.12em;
+    background:var(--yellow); color:#0a0a0a; padding:3px 8px; margin-left:8px; vertical-align:middle; }
+
+  /* diagram */
+  .diagram{ background:var(--panel2); border:1px solid var(--line); padding:22px; font-family:var(--mono); font-size:12.5px; color:#cfccc2; overflow-x:auto; }
+  .diagram pre{ background:none; border:none; padding:0; color:inherit; }
+
+  /* steps */
+  .step{ display:flex; gap:16px; padding:14px 0; border-bottom:1px solid var(--line); }
+  .step .i{ font-family:var(--mono); font-weight:800; color:var(--amber); font-size:18px; min-width:34px; }
+  .step .t b{ display:block; margin-bottom:3px; }
+  .step .t span{ color:var(--dim); font-size:13.5px; }
+
+  /* risk */
+  .risk{ border-left:3px solid var(--bad); background:var(--panel); padding:12px 16px; margin-top:10px; }
+  .risk b{ color:#ff9a90; }
+  .risk span{ color:var(--dim); font-size:13.5px; }
+
+  /* input controls */
+  .qbox{ background:var(--panel); border:1px solid var(--line); border-top:4px solid var(--amber); padding:20px; margin-top:16px; }
+  .qbox .q{ font-weight:700; font-size:15px; margin-bottom:14px; }
+  .qbox label{ display:flex; align-items:flex-start; gap:10px; padding:9px 0; cursor:pointer; font-size:14px; }
+  .qbox label span.d{ color:var(--dim); font-size:12.5px; display:block; }
+  .qbox input{ margin-top:3px; transform:scale(1.2); accent-color:var(--amber); cursor:pointer; }
+  .qbtn{ font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    background:var(--yellow); color:#0a0a0a; border:none; padding:10px 18px; margin-top:14px;
+    cursor:pointer; box-shadow:3px 3px 0 #0a0a0a; font-weight:700; }
+  .qbtn:hover{ transform:translate(1px,1px); box-shadow:2px 2px 0 #0a0a0a; }
+  .qbtn.send{ background:var(--lime); }
+  .hint{ font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:10px; letter-spacing:.02em; }
+
+  footer{ margin-top:64px; padding-top:20px; border-top:2px solid var(--line); color:var(--dim); font-size:12.5px; font-family:var(--mono); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HEADER ============ -->
+  <header>
+    <div class="kicker">deskclock · technical plan</div>
+    <h1>기존 <span class="accent">Face 레이어</span> 리팩터링</h1>
+    <p class="sub">10개로 늘어난 시계 페이스가 <code class="inline">tick()</code> 스위치보드·중복 CSS·수동 element ref에 흩어져 있어,
+      face 하나를 추가/수정할 때마다 4~5곳을 동시에 손대야 한다. 코드 동작은 그대로 두고
+      <b>"face 추가 = 설정 1개 + CSS 1블록"</b>이 되도록 데이터 주도 구조로 정리하는 계획.</p>
+    <div class="meta-row">
+      <div class="chip">파일 <b>app/index.html</b></div>
+      <div class="chip">현재 <b>1,108줄</b> · faces <b>10</b></div>
+      <div class="chip">제약 <b>빌드 스텝 없음 · 오프라인</b></div>
+      <div class="chip">동작 변경 <b>없음(리팩터링)</b></div>
+    </div>
+  </header>
+
+  <!-- ============ 1. 현재 상태 ============ -->
+  <section>
+    <div class="sec-h"><span class="sec-n">01</span><span class="sec-t">현재 상태 — 측정값</span></div>
+    <div class="tiles">
+      <div class="tile"><div class="num">10</div><div class="lbl">faces (face1·3·4·5·6·7·8·9·10·11)</div></div>
+      <div class="tile"><div class="num">3</div><div class="lbl">중복 쌍 (브루탈 ↔ 클래식)</div></div>
+      <div class="tile"><div class="num">~30</div><div class="lbl">수동 element ref (f1t, f3t …)</div></div>
+      <div class="tile"><div class="num">35줄</div><div class="lbl">tick() 내 face별 갱신 블록</div></div>
+    </div>
+    <p class="sub" style="margin-top:18px">CLAUDE.md 는 아직 <b>"4 faces / 508줄"</b>로 기록돼 있어 실제(10 / 1,108)와 크게 어긋남 — 문서도 함께 갱신 대상.</p>
+  </section>
+
+  <!-- ============ 2. 문제점 ============ -->
+  <section>
+    <div class="sec-h"><span class="sec-n">02</span><span class="sec-t">무엇이 아픈가</span></div>
+    <div class="grid g2">
+      <div class="card">
+        <h3><span class="tag dup">중복</span> near-duplicate 페이스 쌍</h3>
+        <p>face1↔face5(Minimal), face3↔face7(Typography), face4↔face8(Neon)은 레이아웃이 사실상 동일하고 색/그림자만 다르다.
+          그런데 각자 완전히 분리된 scoped CSS + DOM + tick 블록을 가진다.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag smell">스멜</span> tick() 스위치보드</h3>
+        <p>같은 시간 포맷팅을 face마다 <code class="inline">textContent</code>로 손수 반복(963~997줄). face를 추가할 때마다 이 함수에 블록을 덧붙여야 한다.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag smell">스멜</span> 수동 ref 선언 30+</h3>
+        <p><code class="inline">const f4t=el('f4-time'),…</code> 식으로 일일이 잡는다. id 규칙(<code class="inline">f{N}-time</code>)이 암묵적이라 자동 수집 가능한데도 손으로 나열.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag smell">스멜</span> fitActive() 매직 스트링 분기</h3>
+        <p><code class="inline">if(id==='face3'||id==='face7')…</code>, <code class="inline">face11</code> 특례가 함수 안에 하드코딩. face 추가 시 여기도 수정 필요.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag smell">스멜</span> 매초 innerHTML 재생성</h3>
+        <p>face4·8·9는 매 tick마다 <code class="inline">innerHTML=h12+'&lt;span…&gt;'</code>로 콜론 span을 통째로 다시 만든다 → 깜빡임 애니메이션 위상 리셋·불필요한 파싱.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag doc">문서</span> CLAUDE.md 표류</h3>
+        <p>구조 설명(face 수·줄 수·FACES 표)이 실제와 어긋나 신규 작업 시 오해 유발. 리팩터링과 함께 정정.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. 제안 ============ -->
+  <section>
+    <div class="sec-h"><span class="sec-n">03</span><span class="sec-t">제안 — 데이터 주도 Face 레지스트리</span></div>
+    <p class="sub">핵심 아이디어: 각 face가 <b>자기 갱신 방법을 자기 설정에 들고</b> 있게 한다. <code class="inline">tick()</code>은 공통 시간 모델 하나를 만들고
+      활성 face(혹은 전체)의 <code class="inline">render(parts)</code>만 호출. ref/fit/render가 모두 FACES 한 곳에 모인다.</p>
+
+    <div class="diagram">
+<pre>            ┌─────────────────────────────────────────────┐
+   tick() → │  parts = { h12, hh, mm, ss, ampm,           │   공통 시간 모델 1개
+            │            dateLong, dateShort, h24 }        │   (face별 반복 제거)
+            └───────────────────┬─────────────────────────┘
+                                │  for face of FACES: face.render(parts, refs)
+        ┌───────────────────────┼───────────────────────┐
+        ▼                       ▼                       ▼
+  FACES['face4'] = {      FACES['face6'] = {      FACES['face11'] = {
+    name, theme,            name, theme,            name, theme,
+    fit:{mode:'wrap',…},    fit:{mode:'wrap'},      fit:{mode:'goo',…},
+    render(p,r){ … }        render: flip,           render(p,r){ blobs }
+  }                       }                       }
+        └─── refs 자동 수집: querySelectorAll('[data-bind]') ───┘</pre>
+    </div>
+
+    <pre><span class="c">// 변경 전 — tick() 안에 face4 갱신이 하드코딩</span>
+<span class="del">f4t.innerHTML = h12 + '&lt;span class="f4-colon"&gt;:&lt;/span&gt;' + mm;  // 매초 재파싱</span>
+<span class="del">f4a.textContent = ampm; f4s.textContent = ss; …</span>
+
+<span class="c">// 변경 후 — 콜론 span은 1회 생성, 숫자만 갱신 + 설정에 위치</span>
+<span class="add">render(p, r){ r.h.textContent = p.h12; r.m.textContent = p.mm;</span>
+<span class="add">             r.s.textContent = p.ss; r.a.textContent = p.ampm; }</span></pre>
+  </section>
+
+  <!-- ============ 4. 옵션 비교 ============ -->
+  <section>
+    <div class="sec-h"><span class="sec-n">04</span><span class="sec-t">접근 방식 선택</span></div>
+    <p class="sub">"얼마나 깊이 갈 것인가"의 결정. 셋은 배타적이지 않고 <b>A ⊂ B</b>이며, C(중복 쌍 병합)는 A/B 위에 얹는 별도 축이다.</p>
+
+    <div class="grid g3" style="margin-top:18px">
+      <div class="opt A">
+        <div class="bar"></div>
+        <div class="body">
+          <h3>A. 최소 정리 <span class="reco">추천 출발점</span></h3>
+          <div class="effort">노력 S · 위험 낮음</div>
+          <ul>
+            <li class="pro">tick() → 공통 parts 모델 + face별 render()</li>
+            <li class="pro">ref 자동 수집(data-bind)</li>
+            <li class="pro">fitActive를 face.fit 설정으로 이동</li>
+            <li class="pro">동작·픽셀 결과 불변, 되돌리기 쉬움</li>
+            <li class="con">중복 CSS는 그대로 남음</li>
+          </ul>
+        </div>
+      </div>
+      <div class="opt B">
+        <div class="bar"></div>
+        <div class="body">
+          <h3>B. 템플릿화</h3>
+          <div class="effort">노력 M · 위험 중간</div>
+          <ul>
+            <li class="pro">A 전부 포함</li>
+            <li class="pro">face 마크업을 <code class="inline">&lt;template&gt;</code>로, JS가 인스턴스화</li>
+            <li class="pro">HTML 본문이 크게 짧아짐</li>
+            <li class="con">DOM 생성 타이밍·폰트 로드 순서 재검증 필요</li>
+            <li class="con">디버깅 시 한 단계 우회</li>
+          </ul>
+        </div>
+      </div>
+      <div class="opt C">
+        <div class="bar"></div>
+        <div class="body">
+          <h3>C. 중복 쌍 병합</h3>
+          <div class="effort">노력 M · 위험 중상 (외형 영향)</div>
+          <ul>
+            <li class="pro">3쌍 → 3 face + <code class="inline">data-variant</code> 토큰화</li>
+            <li class="pro">CSS 최대 ~40% 감소</li>
+            <li class="con">디자인 결정: 10개 유지 vs 6+토글로 축소?</li>
+            <li class="con">DESIGN.md·FACES 순서·localStorage 인덱스 영향</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <thead><tr><th>기준</th><th>A 최소</th><th>B 템플릿</th><th>C 병합</th></tr></thead>
+      <tbody>
+        <tr><td>tick() 스위치보드 제거</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+        <tr><td>HTML 본문 축소</td><td class="n">—</td><td class="y">✓✓</td><td class="y">✓</td></tr>
+        <tr><td>중복 CSS 제거</td><td class="n">—</td><td class="n">—</td><td class="y">✓✓</td></tr>
+        <tr><td>외형/페이스 목록 변화</td><td class="y">없음</td><td class="y">없음</td><td class="n">있음</td></tr>
+        <tr><td>되돌리기 난이도</td><td class="y">쉬움</td><td>보통</td><td class="n">어려움</td></tr>
+        <tr><td>빌드 스텝 없음 유지</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+      </tbody>
+    </table>
+    <div class="risk" style="border-left-color:var(--lime); margin-top:18px">
+      <b style="color:var(--lime)">결정됨 ✓</b>
+      <span><b>A를 먼저 머지</b>(안전한 토대) → 이후 <b>B 템플릿화는 별도 PR</b>로 분리. <b>C(중복 쌍 병합)는 보류.</b></span>
+    </div>
+  </section>
+
+  <!-- ============ 5. 마이그레이션 단계 (A 기준) ============ -->
+  <section>
+    <div class="sec-h"><span class="sec-n">05</span><span class="sec-t">마이그레이션 단계 (확정 스코프 — A + 부가 3건)</span></div>
+    <div class="step"><div class="i">1</div><div class="t"><b>공통 시간 모델 추출</b><span>tick() 상단에서 parts 객체(h12,hh,mm,ss,ampm,dateLong,dateShort,h24) 1회 계산.</span></div></div>
+    <div class="step"><div class="i">2</div><div class="t"><b>ref 자동 수집</b><span>각 갱신 노드에 <code class="inline">data-bind="time|sec|ampm|date"</code> 부여 → face 진입 시 <code class="inline">querySelectorAll</code>로 수집. 수동 const 30개 제거.</span></div></div>
+    <div class="step"><div class="i">3</div><div class="t"><b>face별 render(parts, refs)</b><span>face마다 갱신 로직을 FACES 항목으로 이동. flip(face6)·goo(face11)는 기존 전용 함수를 render로 래핑.</span></div></div>
+    <div class="step"><div class="i">4</div><div class="t"><b>colon span 1회 생성</b><span>face4·8·9의 매초 innerHTML 제거 → 마크업에 콜론 span 고정, 숫자 노드만 textContent 갱신.</span></div></div>
+    <div class="step"><div class="i">5</div><div class="t"><b>fit 설정화</b><span>fitActive의 id 분기를 <code class="inline">face.fit={mode,selector,maxScale,avail}</code>로 대체.</span></div></div>
+    <div class="step"><div class="i">6</div><div class="t"><b>localStorage id 기반 전환 <span style="color:var(--lime)">[확정]</span></b><span><code class="inline">deskclock.face</code>를 배열 인덱스 → face <b>id</b>로 저장. 읽을 때 id→인덱스 매핑, 기존 숫자값은 호환 폴백 처리. 향후 B/C에서 순서 변경에도 부팅 face 안전.</span></div></div>
+    <div class="step"><div class="i">7</div><div class="t"><b>검증 + 문서 <span style="color:var(--lime)">[확정]</span></b><span><code class="inline">npx cap copy android</code> 후 실기기 10 face 순회 확인. <b>CLAUDE.md</b> face 수·줄 수·FACES 표 갱신.</span></div></div>
+  </section>
+
+  <!-- ============ 6. 리스크 / 열린 질문 ============ -->
+  <section>
+    <div class="sec-h"><span class="sec-n">06</span><span class="sec-t">리스크 & 실패 모드</span></div>
+    <div class="risk" style="border-left-color:var(--lime)"><b style="color:var(--lime)">localStorage 인덱스 호환 [해소]:</b> <span><code class="inline">deskclock.face</code>는 FACES 배열 <b>인덱스</b>를 저장한다. → 5단계에서 <b>id 기반 저장으로 전환</b>(숫자값 폴백 포함)하기로 확정. 향후 B/C의 순서 변경에도 안전.</span></div>
+    <div class="risk"><b>flip/goo 특수 렌더:</b> <span>face6(animationend 구동)·face11(블롭 nth-child 애니메이션)은 단순 textContent 모델에 안 맞음 → render 인터페이스가 이 둘을 1급으로 수용해야 함.</span></div>
+    <div class="risk"><b>폰트 로드 타이밍:</b> <span>템플릿화(B)에서 DOM 생성이 늦어지면 <code class="inline">document.fonts.ready</code> 기반 fit 재계산 순서가 어긋날 수 있음.</span></div>
+    <div class="risk"><b>스코프 경계:</b> <span>sonar PoC(우측하단 SONAR 링크·하단 sonar script)는 "검증 후 삭제" 표시된 임시 코드. 이번 리팩터링 범위에 <b>포함하지 않음</b> — 별도로 처리.</span></div>
+  </section>
+
+  <!-- ============ 7. 확정된 결정 ============ -->
+  <section>
+    <div class="sec-h"><span class="sec-n">07</span><span class="sec-t">확정된 결정 ✓</span></div>
+
+    <div class="grid g2">
+      <div class="card" style="border-top:4px solid var(--lime)">
+        <h3>접근 방식</h3>
+        <p style="color:var(--ink)"><b>A 최소 정리를 먼저 머지</b> → 이후 <b>B 템플릿화는 별도 PR</b>로 분리.<br>
+          <span style="color:var(--dim)">C(중복 쌍 병합)는 이번 범위에서 <b>보류</b>.</span></p>
+      </div>
+      <div class="card" style="border-top:4px solid var(--lime)">
+        <h3>함께 처리 (확정 스코프)</h3>
+        <p style="color:var(--ink)">
+          ✓ 매초 innerHTML 재생성 제거 (face4·8·9)<br>
+          ✓ CLAUDE.md 갱신 (4→10 face·줄 수·FACES 표)<br>
+          ✓ localStorage 인덱스 → <b>id 기반</b> 전환
+        </p>
+      </div>
+    </div>
+
+    <div class="qbox" style="border-top-color:var(--lime); margin-top:18px">
+      <div class="q">다음 단계 — 지금 구현을 시작할까요?</div>
+      <p class="sub" style="margin:0 0 14px">위 결정대로 <code class="inline">app/index.html</code>(+ CLAUDE.md)을 실제로 수정하기 시작합니다.
+        계획만 확정해 두고 구현은 나중에 할 수도 있어요.</p>
+      <form data-lavish-question="go"
+        onsubmit="event.preventDefault(); const v=new FormData(event.currentTarget).get('go'); if(v) window.lavish.queuePrompt(v==='now' ? '확정된 계획대로 지금 바로 구현을 시작해줘 (app/index.html + CLAUDE.md 수정)' : '계획은 확정. 구현은 아직 시작하지 말고 대기해줘.', {tag:'choice', text:(v==='now'?'구현 시작':'대기'), element:event.currentTarget, data:{question:'go', answer:v}});">
+        <label><input type="radio" name="go" value="now"><div>지금 구현 시작<span class="d">app/index.html을 단계 1~7대로 리팩터링 + CLAUDE.md 갱신.</span></div></label>
+        <label><input type="radio" name="go" value="later"><div>계획만 확정, 구현은 대기<span class="d">문서로만 남겨두고 추후 진행.</span></div></label>
+        <button type="submit" class="qbtn">이 답변 큐에 담기</button>
+      </form>
+      <span class="qbtn send" data-lavish-action onclick="window.lavish && window.lavish.sendQueuedPrompts && window.lavish.sendQueuedPrompts()" style="margin-top:14px">지금 에이전트로 전송 ▶</span>
+      <p class="hint">계획 내용을 더 손보고 싶으면 카드·표·코드를 클릭해 주석으로 남겨주세요.</p>
+    </div>
+  </section>
+
+  <footer>
+    deskclock / app/index.html · face refactor plan · 동작 보존 리팩터링 · 빌드 스텝 없음 유지<br>
+    디자인 출처: 프로젝트(deskclock)의 브루탈리즘 감성을 반영한 자체 완결 스타일(CDN 미사용).
+  </footer>
+
+</div>
+</body>
+</html>
