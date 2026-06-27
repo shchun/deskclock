@@ -120,4 +120,24 @@ None — no images or icons. Glyphs (‹ › and dots) are text/CSS. Fonts load 
 
 ## Notes
 - `prefers-reduced-motion: reduce` disables the entrance animation; honor it in the rebuild.
+
+## FACE 12·13 — Fold 3D (입체 디지털, 폴드 단말 전용)
+
+유일한 WebGL/3D 페이스 쌍. 두 페이스(**face12 네온 / face13 솔리드**)는 **같은 off-axis 엔진과 공유 오버레이(`#fold3d-stage`)**를 쓰고 스타일만 다르다. 폴드 단말로 감지되면 둘 다 등록된다. 섹션(`#face12`/`#face13`)은 빈 투명 마커이고 실제 렌더는 공유 캔버스가 담당(중앙정렬·`fitActive` 우회).
+
+- **face12 Fold Neon**: 공중에 뜬 압출 7-세그먼트 네온 숫자(시안). 바닥 빛 웅덩이 + 위아래 부유.
+- **face13 Fold Solid**: 바닥에 선 솔리드 입체 숫자(three `TextGeometry`, helvetiker_bold 번들 폰트). 광택 `MeshPhysicalMaterial`(환경맵 반사) + 바닥 미러 반사. 접지된 '실체' 느낌.
+
+**관찰자 모델(중요)**: 월드 좌표는 화면 폭에 상대적(x ∈ [-1,1] = 디스플레이 폭). 내부 디스플레이 폭 ≈148mm 가정 → `MM_PER_UNIT≈74`. 관찰자는 **50cm 바깥, 45° 위**에서 봄(`VIEW_DIST_MM=500`, `VIEW_ELEV=45°`). 시점을 실제 거리에 맞춰야(근접 과장 원근 제거) 아나모픽 착시가 정확하다. 단말 폭 가정이 틀리면 `MM_PER_UNIT`만 조정.
+
+(이하 face12 세부)
+
+- **착시 원리(anamorphic / fish-tank)**: 화면을 상단 절반=수직 '벽', 하단 절반=수평 '바닥' 두 뷰포트로 나눠, 단일 시점(eye)에서 off-axis(Kooima 일반화 원근) 카메라 2대로 같은 씬을 따로 렌더. 단말을 화면 정중앙(크레이즈)에서 90°로 접으면 두 수직 화면이 하나의 입체 공간으로 합쳐진다. 기법 출처: `precipi-web/3d-fold`.
+- **오브젝트**: 공중에 뜬 압출 7-세그먼트 `HH:MM` 네온 숫자(시안 `#35e8ff`, 꺼진 세그먼트는 LED 패널 느낌의 dim). 콜론은 짝수 초에 점등. 가독성을 위해 전체 회전 대신 미세한 흔들림(±0.18rad)만 부여.
+- **공간감**: 옅은 바닥/벽 그리드 + 밝은 크레이즈 선 + 별필드 + 바닥 글로우.
+- **폴드 감지 → 조건부 등록**: 기본은 페이스 미존재. 네이티브 `window.DeskClock.isFoldable()`(경첩 센서 존재)가 참이거나, 웹 표준 `navigator.devicePosture`가 `folded`로 관측되거나, 경첩 각도 콜백이 오면 `window.__deskAddFace`로 FACES에 등록. **비폴드 단말엔 페이스 자체가 없다.**
+- **경첩 각도 보정**: 네이티브 `Sensor.TYPE_HINGE_ANGLE` → `window.__foldHinge(deg)`. 벽 평면 방향을 `(0, sinθ, cosθ)`로 기울여(θ=경첩 각도) 90°가 아니어도 착시가 정확. 웹(센서 없음)에선 90° 고정.
+- **렌더 게이팅**: rAF는 face12가 활성일 때만 — 진입 시 `Fold3D.setActive(true)`, 이탈 시 중단(배터리/성능).
+- **에셋**: `app/vendor/three.module.js`(three r160 오프라인 번들). 7-세그먼트는 코드 생성이라 별도 폰트/타입페이스 JSON 불필요.
+- **배치 상수**(코드 내 튜닝, L=각 절반의 월드 높이): 네온 `NEON_SCALE 0.50`, `PLACE.face12 {y:0.45·L, z:0.50·L}`, 빛 웅덩이 1.9. 솔리드 `SOLID_SCALE 0.80`, `PLACE.face13 {y:0(바닥), z:0.55·L}`. 시점은 위 관찰자 모델(50cm·45°)에서 절대 월드단위로 계산(`EYE_Y/EYE_Z`, ×L 아님).
 - Respect the system clock / locale if you localize, but the reference deliberately uses English uppercase weekday/month with 12-hour AM/PM.

@@ -1,12 +1,18 @@
 package com.precipi.deskclock;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebView;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -20,9 +26,18 @@ public class MainActivity extends BridgeActivity {
 
     private static final int REQ_MIC = 1001;
 
+    // 폴드 경첩 각도 센서 — 존재 여부 자체가 '폴드 단말' 신호. 각도(0=닫힘~180=평평)를 웹에 전달.
+    private SensorManager sensorManager;
+    private Sensor hingeSensor;
+    private volatile float hingeAngle = -1f;   // -1 = 아직 값 없음
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        if (sensorManager != null) {
+            hingeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HINGE_ANGLE);
+        }
         // 데스크 클락: 화면이 꺼지지 않게 유지
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         // 컷아웃/레터박스 영역에 흰색이 비치지 않도록 배경을 검정으로
@@ -49,14 +64,33 @@ public class MainActivity extends BridgeActivity {
     public void onResume() {
         super.onResume();
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+        if (sensorManager != null && hingeSensor != null) {
+            sensorManager.registerListener(hingeListener, hingeSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
     // 앱을 벗어날 때는 방향 요청을 해제해, 기기가 원래(실행 전) 방향으로 돌아가게 한다.
     @Override
     public void onPause() {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        if (sensorManager != null) sensorManager.unregisterListener(hingeListener);
         super.onPause();
     }
+
+    // 경첩 각도 변화를 웹(FACE 12 폴드 3D 엔진)에 전달 — window.__foldHinge(deg)
+    private final SensorEventListener hingeListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            if (event.values.length == 0) return;
+            hingeAngle = event.values[0];
+            final WebView wv = (getBridge() != null) ? getBridge().getWebView() : null;
+            if (wv == null) return;
+            wv.post(() -> wv.evaluateJavascript(
+                    "window.__foldHinge && window.__foldHinge(" + hingeAngle + ")", null));
+        }
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) { }
+    };
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -78,6 +112,18 @@ public class MainActivity extends BridgeActivity {
                         : Math.max(0.004f, Math.min(1f, v));
                 getWindow().setAttributes(lp);
             });
+        }
+
+        // 폴드 단말 여부 — 경첩 각도 센서 존재로 판단(웹에서 FACE 12 노출 결정).
+        @JavascriptInterface
+        public boolean isFoldable() {
+            return hingeSensor != null;
+        }
+
+        // 마지막으로 읽은 경첩 각도(도). -1 이면 아직 값 없음.
+        @JavascriptInterface
+        public float hingeAngle() {
+            return hingeAngle;
         }
     }
 
