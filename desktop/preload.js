@@ -8,6 +8,39 @@ contextBridge.exposeInMainWorld('desktopWidget', {
 window.addEventListener('DOMContentLoaded', () => {
   const isOriginal = location.pathname.endsWith('/index.html');
   const isWidget = location.pathname.endsWith('/widget.html');
+  if (isOriginal || isWidget) {
+    // Native app-region:drag swallows mouse events on some Windows versions.
+    // Capture only left-button drags so normal right-click context menus still work.
+    let pointer = null;
+    const root = document.documentElement;
+    const interactive = target => !!target.closest?.('button,a,input,select,textarea,[role="button"]');
+    const finish = () => {
+      if (pointer === null) return;
+      const id = pointer; pointer = null;
+      ipcRenderer.send('widget:drag-end');
+      if (root.hasPointerCapture(id)) root.releasePointerCapture(id);
+    };
+    window.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || interactive(event.target)) return;
+      event.preventDefault();
+      pointer = event.pointerId;
+      root.setPointerCapture(pointer);
+      ipcRenderer.send('widget:drag-start', { x: event.screenX, y: event.screenY });
+    }, true);
+    window.addEventListener('pointermove', event => {
+      if (event.pointerId !== pointer) return;
+      if (!(event.buttons & 1)) { finish(); return; }
+      ipcRenderer.send('widget:drag-move');
+    }, true);
+    window.addEventListener('pointerup', event => { if (event.pointerId === pointer && event.button === 0) finish(); }, true);
+    window.addEventListener('pointercancel', finish, true);
+    window.addEventListener('lostpointercapture', finish, true);
+    window.addEventListener('blur', finish);
+    window.addEventListener('click', event => {
+      if (interactive(event.target)) return;
+      event.preventDefault(); event.stopImmediatePropagation();
+    }, true);
+  }
   if (isOriginal || isWidget) window.addEventListener('keydown', event => {
     if (event.altKey || event.ctrlKey || event.metaKey || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
     event.preventDefault();
@@ -26,7 +59,6 @@ window.addEventListener('DOMContentLoaded', () => {
   style.textContent = `html,body,body.widget-bg{background:transparent!important}
     .stage.widget-frame{inset:7px;overflow:hidden}
     #nav{display:none}
-    .stage::after{content:'';position:absolute;inset:0;z-index:9998;-webkit-app-region:drag}
     #widget-tools{position:absolute;right:8px;top:8px;z-index:9999;display:flex;gap:4px;-webkit-app-region:no-drag;opacity:.15}
     #widget-tools:hover,#widget-tools:focus-within{opacity:1}
     #widget-tools button{border:1px solid #888;border-radius:6px;background:#222;color:#fff;padding:5px 9px;cursor:pointer}
