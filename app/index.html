@@ -33,6 +33,14 @@
     display:flex; align-items:center; justify-content:center;
   }
 
+  /* Mint LCD uses the same segment geometry and palette as the desktop widget. */
+  #face-mint{ background:#10231b; }
+  .mint-panel{ width:92%; height:82%; max-height:38vw; border:1.3vmin solid #438b69;
+    border-radius:9vmin; background:#d6f4e3; display:flex; align-items:center; justify-content:center; }
+  .mint-panel svg{ width:88%; height:80%; color:#10291f; }
+  .mint-panel .segment{ fill:currentColor; opacity:0; }
+  .mint-panel .segment.on,.mint-panel .colon{ fill:currentColor; opacity:1; }
+
   /* ---- faces ---- */
   .face{
     position:absolute; inset:0;
@@ -405,50 +413,6 @@
     }
   }
 
-  /* ======================================================= */
-  /* NAV                                                     */
-  /* ======================================================= */
-  .stage[data-theme="light"]{ --ui:#0a0a0a; --ui-soft:rgba(10,10,10,.4); --ui-bg:rgba(255,255,255,.55); }
-  .stage[data-theme="dark"]{ --ui:#FFED47; --ui-soft:rgba(255,237,71,.5); --ui-bg:rgba(10,10,10,.45); }
-
-  .nav{
-    position:fixed; left:50%; bottom:4.5vmin; transform:translateX(-50%);
-    z-index:50;
-    display:flex; align-items:center; gap:1.4vmin;
-    padding:1.1vmin 1.6vmin;
-    border:2px solid var(--ui);
-    box-shadow:3px 3px 0 var(--ui);
-    background:var(--ui-bg);
-    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
-    transition:opacity .5s ease, color .7s ease, background .7s ease;
-    color:var(--ui);
-    user-select:none;
-  }
-  .nav button{
-    appearance:none; border:none; background:transparent; color:inherit;
-    width:3.4vmin; height:3.4vmin; min-width:30px; min-height:30px;
-    cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
-    font-size:2.4vmin; line-height:1; font-family:'Archivo',sans-serif;
-    transition:background .2s ease;
-  }
-  .nav button:hover{ background:var(--ui-bg); }
-  .nav .dots{ display:flex; align-items:center; gap:1.2vmin; padding:0 .6vmin; }
-  .nav .dots i{
-    width:1.4vmin; height:1.4vmin; min-width:10px; min-height:10px;
-    background:var(--ui-soft); cursor:pointer; transition:transform .25s ease, background .25s ease;
-  }
-  .nav .dots i.on{ background:var(--ui); transform:scale(1.4); }
-  .nav .label{
-    font-size:1.5vmin; letter-spacing:.32em; text-transform:uppercase;
-    padding-left:1vmin; padding-right:.4vmin; color:var(--ui);
-    min-width:13ch; text-align:left;
-    font-family:'Jost',sans-serif; font-weight:400;
-  }
-
-  .stage.idle .nav{ opacity:0; pointer-events:none; }
-  .nav:hover{ opacity:1 !important; }
-
   /* 화면 비율에 맞춘 확대는 JS(fitActive)가 담당한다 — 콘텐츠를 측정해 어떤
      비율(세로 바/가로 바/일반 폰)에서도 화면의 ~92%에 맞춰 키운다(넘치지 않게). */
 </style>
@@ -495,7 +459,7 @@
     </defs>
   </svg>
 
-  <div class="stage" id="stage" data-theme="light">
+  <div class="stage" id="stage">
 
     <!-- FACE 3 — TYPOGRAPHY -->
     <section class="face" id="face3">
@@ -601,13 +565,12 @@
       </div>
     </section>
 
+    <section class="face" id="face-mint">
+      <div class="mint-panel"><svg id="mint-digits" viewBox="0 0 610 124" role="img" aria-label="현재 시간"></svg></div>
+    </section>
   </div>
 
-  <!-- NAV (위치 표시용 점만 — 화면을 터치하면 다음 시계로 전환) -->
-  <nav class="nav" id="nav">
-    <div class="dots" id="dots"></div>
-  </nav>
-
+<script src="lcd.js"></script>
 <script>
 (function(){
   // 노드가 있으면 텍스트만 갱신(없으면 무시) — render 헬퍼
@@ -617,6 +580,7 @@
      각 face는 자기 갱신법(render)과 확대 설정(fit)을 직접 들고 있다.
        render(p,r): p=공통 시간 모델(parts), r=data-bind 으로 자동 수집된 노드맵
        fit{sel,aw,ah,max}: f.el 하위에서 sel 을 골라 가용폭(aw)·높이(ah)·최대배율(max)로 확대 */
+  const renderMint = window.createMintLCD(document.getElementById('mint-digits'));
   const FACES = [
     { id:'face3', name:'Brutal Type',     theme:'light', fit:{sel:'.f3-time', aw:.9, ah:.6, max:5},
       render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dlongMon3); } },
@@ -632,11 +596,10 @@
       render(p,r){ set(r.time,p.h24+':'+p.mm+':'+p.ss); set(r.date,p.dlongDot); } },
     { id:'face11',name:'Liquid Goo',      theme:'dark',  fit:{sel:'.f11-goo-container', aw:.88, ah:.82, max:4},
       render(p,r){ set(r.d0,p.hh[0]); set(r.d1,p.hh[1]); set(r.d2,p.mm[0]); set(r.d3,p.mm[1]); set(r.s0,p.ss[0]); set(r.s1,p.ss[1]); set(r.date,p.dlongDot); } },
+    { id:'face-mint', name:'Mint LCD', theme:'light', fit:null, render(){ renderMint(); } },
   ];
 
   const stage = document.getElementById('stage');
-  const nav   = document.getElementById('nav');
-  const dotsC = document.getElementById('dots');
 
   // 각 face 요소와 갱신 노드를 1회 수집 — data-bind 속성으로 자동(수동 ref 선언 제거)
   FACES.forEach(f=>{
@@ -644,14 +607,6 @@
     f.r  = {};
     if(f.el) f.el.querySelectorAll('[data-bind]').forEach(n=>{ f.r[n.dataset.bind] = n; });
   });
-
-  // build dots
-  FACES.forEach((f,i)=>{
-    const d=document.createElement('i');
-    d.addEventListener('click',()=>go(i));
-    dotsC.appendChild(d);
-  });
-  const dots=[...dotsC.children];
 
   // 저장값은 face id — 순서가 바뀌어도 안전. 구버전 숫자 인덱스도 호환 폴백.
   function loadActive(){
@@ -673,9 +628,7 @@
     active=(i+FACES.length)%FACES.length;
     FACES.forEach((f,idx)=>{
       f.el.classList.toggle('active', idx===active);
-      dots[idx].classList.toggle('on', idx===active);
     });
-    stage.dataset.theme = FACES[active].theme;
     localStorage.setItem('deskclock.face', FACES[active].id);
     document.dispatchEvent(new CustomEvent('deskclock:face-changed', { detail: FACES[active].id }));
     if(FACES[active].id==='face6') renderFlip(false); // set instantly, no animation
@@ -715,16 +668,6 @@
     if(e.key==='ArrowLeft')  go(active-1);
     if(e.key==='ArrowRight') go(active+1);
   });
-
-  /* ---------- idle hide of nav ---------- */
-  let idleT;
-  function wake(){
-    stage.classList.remove('idle');
-    clearTimeout(idleT);
-    idleT=setTimeout(()=>stage.classList.add('idle'), 4000);
-  }
-  ['mousemove','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,wake,{passive:true}));
-  wake();
 
   /* ---------- flip clock ---------- */
   function buildFlip(container,count){
@@ -805,7 +748,7 @@
     const p = {
       h12, hh, mm, ss, ampm, h24: pad(h24n),
       dlongDot:  dayL+' · '+monL+' '+dn,   // 요일 · 전체월 일 (face5·8·10·11)
-      dlongMon3: dayL+'  '+mon3+' '+dn,    // 요일  약식월 일 (face3·7 타이포)
+      dlongMon3: dayL+'  '+mon3+' '+dn,
       dshort:    day3+' · '+mon3+' '+dn,   // 약식요일 · 약식월 일 (face6 플립)
     };
     // 각 face가 자기 render 로 갱신 (face6.render 안에서 flip 카드도 함께 갱신)
