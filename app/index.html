@@ -117,21 +117,21 @@
     color:#0a0a0a; text-shadow:7px 7px 0 #FF1F7D;
   }
   .f3-ampm{
-    position:absolute; top:6%; right:6%;
-    font-family:'Anton',sans-serif; font-size:7.5vmin; line-height:.9;
+    position:absolute; top:20%; right:14%;
+    font-family:'Anton',sans-serif; font-size:13vmin; line-height:.9;
     color:#0a0a0a; background:#FF1F7D; padding:.4vmin 2vmin;
     border:4px solid #0a0a0a; box-shadow:6px 6px 0 #0a0a0a;
   }
   .f3-date{
-    position:absolute; left:5%; bottom:6%;
-    writing-mode:vertical-rl; transform:rotate(180deg);
-    font-family:'Anton',sans-serif; font-size:4.4vmin; letter-spacing:.06em;
+    position:absolute; left:14%; top:50%; transform:translateY(-50%);
+    white-space:pre; line-height:1.25;
+    font-family:'Anton',sans-serif; font-size:8.5vmin; letter-spacing:.06em;
     color:#F5F5F5; background:#0a0a0a; padding:1.6vmin .7vmin;
     text-transform:uppercase;
   }
   .f3-sec{
-    position:absolute; right:6%; bottom:6%;
-    font-family:'Anton',sans-serif; font-size:7vmin; color:#FF1F7D;
+    position:absolute; right:14%; bottom:20%;
+    font-family:'Anton',sans-serif; font-size:14vmin; color:#FF1F7D;
     background:#0a0a0a; padding:.2vmin 1.4vmin;
     box-shadow:-5px 5px 0 #FF1F7D;
     font-variant-numeric:tabular-nums;
@@ -181,10 +181,10 @@
     display:flex; flex-direction:column; align-items:center; justify-content:center; }
   .f7-time{ font-family:'Anton',sans-serif; font-weight:400; font-size:40vmin; line-height:.82; letter-spacing:-.02em;
     font-variant-numeric:tabular-nums; text-transform:uppercase; }
-  .f7-ampm{ position:absolute; top:6%; right:6%; font-family:'Anton',sans-serif; font-size:9vmin; line-height:.8; color:#cf3f23; }
-  .f7-date{ position:absolute; left:5%; bottom:6%; writing-mode:vertical-rl; transform:rotate(180deg);
-    font-family:'Anton',sans-serif; font-size:4.4vmin; letter-spacing:.06em; color:#15130d; text-transform:uppercase; }
-  .f7-sec{ position:absolute; right:6%; bottom:6%; font-family:'Anton',sans-serif; font-size:7vmin; color:#cf3f23; font-variant-numeric:tabular-nums; }
+  .f7-ampm{ position:absolute; top:20%; right:14%; font-family:'Anton',sans-serif; font-size:14vmin; line-height:.8; color:#cf3f23; }
+  .f7-date{ position:absolute; left:14%; top:50%; transform:translateY(-50%); white-space:pre; line-height:1.25;
+    font-family:'Anton',sans-serif; font-size:8.5vmin; letter-spacing:.06em; color:#15130d; text-transform:uppercase; }
+  .f7-sec{ position:absolute; right:14%; bottom:20%; font-family:'Anton',sans-serif; font-size:14vmin; color:#cf3f23; font-variant-numeric:tabular-nums; }
 
   /* ======================================================= */
   /* FACE 8 — NEON / GLOW (classic)                          */
@@ -583,13 +583,13 @@
   const renderMint = window.createMintLCD(document.getElementById('mint-digits'));
   const FACES = [
     { id:'face3', name:'Brutal Type',     theme:'light', fit:{sel:'.f3-time', aw:.9, ah:.6, max:5},
-      render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dlongMon3); } },
+      render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dstack); } },
     { id:'face5', name:'Minimal',         theme:'light', fit:{sel:'.f5-wrap', aw:.92, ah:.92, max:4},
       render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.sec,p.ss); set(r.ampm,p.ampm); set(r.date,p.dlongDot); } },
     { id:'face6', name:'Retro Flip',      theme:'dark',  fit:{sel:'.f6-wrap', aw:.92, ah:.92, max:4},
       render(p,r){ set(r.ampm,p.ampm); set(r.date,p.dshort); renderFlip(); } },
     { id:'face7', name:'Typography',      theme:'light', fit:{sel:'.f7-time', aw:.9, ah:.6, max:5},
-      render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dlongMon3); } },
+      render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dstack); } },
     { id:'face8', name:'Neon',            theme:'dark',  fit:{sel:'.f8-wrap', aw:.92, ah:.92, max:4},
       render(p,r){ set(r.h,p.h12); set(r.m,p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dlongDot); } },
     { id:'face10',name:'Terminal',        theme:'dark',  fit:{sel:'.f10-wrap', aw:.92, ah:.92, max:4},
@@ -748,7 +748,7 @@
     const p = {
       h12, hh, mm, ss, ampm, h24: pad(h24n),
       dlongDot:  dayL+' · '+monL+' '+dn,   // 요일 · 전체월 일 (face5·8·10·11)
-      dlongMon3: dayL+'  '+mon3+' '+dn,
+      dstack:    day3+'\n'+mon3+' '+dn,
       dshort:    day3+' · '+mon3+' '+dn,   // 약식요일 · 약식월 일 (face6 플립)
     };
     // 각 face가 자기 render 로 갱신 (face6.render 안에서 flip 카드도 함께 갱신)
