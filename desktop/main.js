@@ -49,6 +49,12 @@ function chooseFace(id) {
   if (oldStyle !== state.style) loadClock();
   apply(); save();
 }
+function cycleFace(direction) {
+  const sequence = ['widget', ...faces.map(face => face.id)];
+  const current = state.style === 'widget' ? 'widget' : state.originalFace;
+  const index = sequence.indexOf(current);
+  chooseFace(sequence[(index + direction + sequence.length) % sequence.length]);
+}
 const webPreferences = () => ({ preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true });
 function secure(win) {
   // This offline clock does not need microphone, camera, or device permissions.
@@ -116,6 +122,10 @@ else {
       apply(); save(); return snapshot();
     });
     ipcMain.on('widget:settings', openSettings);
+    ipcMain.on('widget:cycle', (event, direction) => {
+      if (event.sender !== clock.webContents || (direction !== 1 && direction !== -1)) return;
+      cycleFace(direction);
+    });
     ipcMain.on('widget:face-changed', (event, id) => {
       if (event.sender !== clock.webContents || state.style !== 'original' || !faces.some(face => face.id === id) || state.originalFace === id) return;
       state.originalFace = id; save(); broadcast(); updateMenu();

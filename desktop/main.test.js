@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const { EventEmitter } = require('node:events');
 
 test('widget restores visible bounds, saves changes, and configures login startup', async () => {
-  const windows = [], handlers = {}, writes = [];
+  const windows = [], handlers = {}, listeners = {}, writes = [];
   let login = {}, menu;
   class Window extends EventEmitter {
     constructor(options) { super(); this.options = options; this.bounds = options; this.webContents = new EventEmitter(); this.webContents.session = { setPermissionRequestHandler() {}, setPermissionCheckHandler() {} }; this.webContents.setWindowOpenHandler = () => {}; this.webContents.send = () => {}; windows.push(this); }
@@ -14,7 +14,7 @@ test('widget restores visible bounds, saves changes, and configures login startu
     show() {} hide() {} focus() {} isVisible() { return true; } isDestroyed() { return false; }
   }
   const app = Object.assign(new EventEmitter(), { requestSingleInstanceLock: () => true, whenReady: () => Promise.resolve(), getPath: () => '/profile', getAppPath: () => '/project', getLoginItemSettings: () => ({ openAtLogin: !!login.openAtLogin }), setLoginItemSettings: value => { login = value; }, isPackaged: true });
-  const electron = { app, BrowserWindow: Window, ipcMain: { handle: (name, fn) => { handlers[name] = fn; }, on() {} },
+  const electron = { app, BrowserWindow: Window, ipcMain: { handle: (name, fn) => { handlers[name] = fn; }, on: (name, fn) => { listeners[name] = fn; } },
     Menu: { buildFromTemplate: items => { menu = items; return { popup() {} }; } },
     Tray: class { setToolTip() {} on() {} setContextMenu() {} }, nativeImage: { createFromBitmap() {} },
     screen: { getDisplayMatching: () => ({ workArea: { x: 0, y: 0, width: 1920, height: 1080 } }), on() {} }, dialog: { showErrorBox: assert.fail } };
@@ -44,4 +44,17 @@ test('widget restores visible bounds, saves changes, and configures login startu
   assert.equal(tall.width, Math.round(200 * 2316 / 904)); assert.equal(tall.height, 200);
   const free = handlers['widget:update']({ sender: windows[1].webContents }, { lockAspect: false, width: 180, height: 60 });
   assert.equal(free.height, 60);
+  handlers['widget:update']({ sender: windows[1].webContents }, { style: 'widget' });
+  const selected = () => { const value = handlers['widget:get'](); return value.style === 'widget' ? 'widget' : value.originalFace; };
+  const sequence = ['widget', ...small.faces.map(face => face.id)];
+  for (const direction of [1, -1]) {
+    for (let step = 1; step <= sequence.length; step++) {
+      listeners['widget:cycle']({ sender: clock.webContents }, direction);
+      assert.equal(selected(), sequence[(step * direction + sequence.length) % sequence.length]);
+    }
+    assert.equal(writes.at(-1).style, 'widget');
+  }
+  listeners['widget:cycle']({ sender: {} }, 1);
+  listeners['widget:cycle']({ sender: clock.webContents }, 2);
+  assert.equal(selected(), 'widget');
 });

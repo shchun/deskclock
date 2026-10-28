@@ -6,6 +6,15 @@ contextBridge.exposeInMainWorld('desktopWidget', {
   onChange: callback => ipcRenderer.on('widget:changed', (_event, state) => callback(state))
 });
 window.addEventListener('DOMContentLoaded', () => {
+  const isOriginal = location.pathname.endsWith('/index.html');
+  const isWidget = location.pathname.endsWith('/widget.html');
+  if (isOriginal || isWidget) window.addEventListener('keydown', event => {
+    if (event.altKey || event.ctrlKey || event.metaKey || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    // Capture before the web clock's Android-only face cycling handler.
+    event.stopImmediatePropagation();
+    ipcRenderer.send('widget:cycle', event.key === 'ArrowRight' ? 1 : -1);
+  }, true);
   if (!location.pathname.endsWith('/index.html')) return;
   const style = document.createElement('style');
   style.textContent = `body::after{content:'';position:fixed;inset:0;z-index:9998;-webkit-app-region:drag}
@@ -17,7 +26,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.head.append(style);
   const tools = document.createElement('div'); tools.id = 'widget-tools';
   const next = document.createElement('button'); next.textContent = '다음 시계';
-  next.onclick = () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+  next.onclick = () => ipcRenderer.send('widget:cycle', 1);
   const settings = document.createElement('button'); settings.textContent = '설정'; settings.onclick = () => ipcRenderer.send('widget:settings');
   tools.append(next, settings); document.body.append(tools);
   document.addEventListener('deskclock:face-changed', event => ipcRenderer.send('widget:face-changed', event.detail));
