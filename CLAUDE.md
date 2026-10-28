@@ -79,7 +79,7 @@ Icon design: minimal clock face at 10:10 position, white circle/hands, amber cen
 
 ### Web layer (`app/index.html` — the entire app)
 
-The file is ~1090 lines structured as: `<style>` block (CSS for all 10 faces) → `<body>` markup (10 face sections + nav) → `<script>` IIFE (clock logic) → a second `<script>` (sonar presence-dimming, background). No framework, no modules, no build step.
+The file contains styles and markup for the clock faces, the main clock IIFE, and the fold-only 3D module. Microphone capture, ultrasonic detection, and automatic presence dimming have been removed. The web layer uses no framework or build step.
 
 **`FACES` array** is the source of truth and is **data-driven**: each entry is `{ id, name, theme, fit, render }`, where `render(parts, refs)` updates that face and `fit` holds its scaling config (see below). At init each face's update nodes are auto-collected from `[data-bind]` attributes into `f.r` — there are no hand-written per-element `const` refs.
 
