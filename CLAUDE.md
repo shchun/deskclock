@@ -17,7 +17,7 @@ deskclock/
 │   ├── manifest.json           # PWA manifest (13 lines)
 │   ├── icons/                  # SVG icons (192 & 512) for manifest
 │   └── fonts/                  # 4 WOFF2 fonts (all embedded for offline use)
-│       ├── jost-var.woff2      # Jost variable (weights 200-500) — face1 Minimal
+│       ├── jost-var.woff2      # Jost variable (weights 200-500) — face5 Minimal
 │       ├── archivo-var.woff2   # Archivo variable (weights 500-700) — face2 Flip
 │       ├── orbitron-var.woff2  # Orbitron variable (weights 400-700) — face8 Neon
 │       └── anton-400.woff2     # Anton 400 — face3 Typography
@@ -85,7 +85,6 @@ The file contains styles and markup for the clock faces, the main clock IIFE, an
 
 | id     | Name            | Font     | Theme |
 |--------|-----------------|----------|-------|
-| face1  | Brutal Minimal  | Archivo  | Light — vivid yellow (#FFED47), hard offset shadows |
 | face3  | Brutal Type     | Anton    | Light — hot-pink offset poster |
 | face5  | Minimal         | Jost     | Light — warm paper (#ECE9E1) |
 | face6  | Retro Flip      | Archivo  | Dark — mechanical split-flap animation |
@@ -94,7 +93,7 @@ The file contains styles and markup for the clock faces, the main clock IIFE, an
 | face10 | Terminal        | monospace| Dark — green CRT, blinking cursor |
 | face11 | Liquid Goo      | Jost     | Dark — SVG metaball blobs (violet) |
 
-Faces are intentionally numbered `face1,3,4,…,11` (not contiguous); `face2` does not exist. Each face is a `#faceN` section with its own scoped CSS block; only `.active` is shown.
+Desktop-compatible faces are numbered `face3,5,6,7,8,10,11` (not contiguous); removed IDs are not reused. Each face is a `#faceN` section with its own scoped CSS block; only `.active` is shown.
 
 **Key functions:**
 

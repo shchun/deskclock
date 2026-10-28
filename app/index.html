@@ -52,27 +52,6 @@
   }
 
   /* ======================================================= */
-  /* FACE 1 — MINIMAL / MODERN                               */
-  /* ======================================================= */
-  /* Brutal Minimal — 비비드 옐로우 + 흰 박스 + 하드 그림자 */
-  #face1{ background:#FFED47; color:#0a0a0a; }
-  .f1-wrap{ display:flex; flex-direction:column; align-items:center; gap:4.5vmin; }
-  .f1-date{
-    font-family:'Archivo',sans-serif; font-weight:700; font-size:2.1vmin; letter-spacing:.32em; white-space:nowrap;
-    text-transform:uppercase; color:#FFED47; background:#0a0a0a; padding:.9vmin 1.8vmin;
-    border:3px solid #0a0a0a; box-shadow:4px 4px 0 #0a0a0a;
-  }
-  .f1-clock{ display:flex; align-items:stretch; gap:2.4vmin; line-height:.8;
-    background:#fff; border:4px solid #0a0a0a; box-shadow:8px 8px 0 #0a0a0a; padding:3vmin 3.6vmin; }
-  .f1-time{ font-family:'Archivo',sans-serif; font-weight:700; font-size:21vmin; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
-  .f1-side{ display:flex; flex-direction:column; align-items:stretch; justify-content:center; gap:1.4vmin; }
-  .f1-sec{ font-family:'Archivo',sans-serif; font-weight:700; font-size:4.4vmin; color:#0a0a0a; font-variant-numeric:tabular-nums;
-    border:3px solid #0a0a0a; padding:.3vmin 1.2vmin; text-align:center; }
-  .f1-ampm{ font-family:'Archivo',sans-serif; font-weight:700; font-size:3vmin; letter-spacing:.18em; color:#FFED47; background:#0a0a0a;
-    padding:.5vmin 1.2vmin; text-align:center; }
-  .f1-rule{ width:34vmin; height:1.2vmin; background:#0a0a0a; }
-
-  /* ======================================================= */
   /* FLIP CARD (공유 인프라 — 클래식 Retro Flip / face6 에서 사용) */
   /* ======================================================= */
   .flip-group{ display:flex; gap:1.1vmin; }
@@ -539,21 +518,6 @@
 
   <div class="stage" id="stage" data-theme="light">
 
-    <!-- FACE 1 — MINIMAL -->
-    <section class="face" id="face1">
-      <div class="f1-wrap">
-        <div class="f1-date" data-bind="date">SUNDAY · JUNE 14</div>
-        <div class="f1-clock">
-          <div class="f1-time" data-bind="time">2:30</div>
-          <div class="f1-side">
-            <div class="f1-sec" data-bind="sec">00</div>
-            <div class="f1-ampm" data-bind="ampm">PM</div>
-          </div>
-        </div>
-        <div class="f1-rule"></div>
-      </div>
-    </section>
-
     <!-- FACE 3 — TYPOGRAPHY -->
     <section class="face" id="face3">
       <div class="f3-wrap">
@@ -690,8 +654,6 @@
        render(p,r): p=공통 시간 모델(parts), r=data-bind 으로 자동 수집된 노드맵
        fit{sel,aw,ah,max}: f.el 하위에서 sel 을 골라 가용폭(aw)·높이(ah)·최대배율(max)로 확대 */
   const FACES = [
-    { id:'face1', name:'Brutal Minimal',  theme:'light', fit:{sel:'.f1-wrap', aw:.92, ah:.92, max:4},
-      render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.sec,p.ss); set(r.ampm,p.ampm); set(r.date,p.dlongDot); } },
     { id:'face3', name:'Brutal Type',     theme:'light', fit:{sel:'.f3-time', aw:.9, ah:.6, max:5},
       render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dlongMon3); } },
     { id:'face5', name:'Minimal',         theme:'light', fit:{sel:'.f5-wrap', aw:.92, ah:.92, max:4},
@@ -895,7 +857,7 @@
     // 공통 시간 모델(parts) — face별로 반복 계산하던 값들을 1회만 만든다
     const p = {
       h12, hh, mm, ss, ampm, h24: pad(h24n),
-      dlongDot:  dayL+' · '+monL+' '+dn,   // 요일 · 전체월 일 (face1·4·5·8·9·10·11)
+      dlongDot:  dayL+' · '+monL+' '+dn,   // 요일 · 전체월 일 (face5·8·10·11)
       dlongMon3: dayL+'  '+mon3+' '+dn,    // 요일  약식월 일 (face3·7 타이포)
       dshort:    day3+' · '+mon3+' '+dn,   // 약식요일 · 약식월 일 (face6 플립)
     };
