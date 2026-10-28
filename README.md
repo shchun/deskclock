@@ -1,111 +1,98 @@
-# Desk Clock 🕐
+# Desk Clock
 
-## Windows 데스크톱 위젯
-
-Sonar 감지·초음파 출력·마이크 캡처와 테스트 화면은 제거했습니다. Android 앱은 녹음 권한을 요청하지 않으며 Windows 앱도 장치 접근 권한을 허용하지 않습니다.
-
-기존 시계 화면을 Electron 창에서 사용할 수 있습니다. Node.js 설치 후:
-
-Windows 기본 화면은 민트색 반투명 패널과 7세그먼트 숫자로 구성한 LCD 위젯입니다. 둥근 모서리 바깥은 완전히 투명하며 배경 불투명도를 숫자와 별도로 조절할 수 있습니다. 기존 페이스는 우클릭 메뉴 또는 설정의 **시계 페이스**에서 이름으로 직접 선택합니다. LCD 위젯은 화면 버튼 없이 우클릭과 트레이 메뉴로 관리합니다.
-
-Windows의 모든 페이스에 민트 위젯과 같은 모서리 곡률·테두리 두께·투명한 바깥 영역을 적용합니다. 테두리는 각 디자인의 강조색(핑크, 앰버, 시안, 초록, 바이올렛 등)을 사용합니다.
-
-가독성을 위해 기본 배경 불투명도는 96%, 전체 불투명도는 100%입니다. 초기 반투명 테마 설정은 업데이트 후 한 번 이 값으로 보정하며 이후의 사용자 변경은 유지합니다.
-
-기본 위젯 크기는 360×141px이며, Galaxy Z Fold5 외부 화면(2316×904, 가로 약 2.562:1) 비율을 사용합니다. 기본 비율에서는 최소 180×70px까지 줄일 수 있고, 설정의 비율 유지를 해제하면 180×60px까지 자유롭게 조절할 수 있습니다. 우클릭/트레이의 **크기** 메뉴에서 작게(240×94), 보통(360×141), 크게(480×187)를 선택하거나 설정의 크기 슬라이더·너비·높이를 사용하세요. **시계 페이스** 메뉴와 설정에서 기존 7종(Minimal, Retro Flip, Typography, Neon, Terminal 등)을 직접 선택할 수 있습니다. 폴드 전용 3D 페이스는 Android 기기에서만 표시됩니다.
-
-```powershell
-npm install
-npm start
-```
-
-- 테두리 없는 시계 화면을 드래그해 이동하며 위치와 크기는 자동 저장됩니다.
-- 시계의 모든 페이스에서 우클릭하면 트레이와 동일한 메뉴가 열립니다. 왼쪽 버튼 드래그는 창 이동으로, 오른쪽 버튼은 메뉴로 분리되어 동작합니다.
-- 우클릭 또는 트레이 메뉴에서 항상 위, 너비·높이, 글자색·배경색, 불투명도(20–100%), Windows 로그인 시 자동 실행을 설정합니다.
-- 방향키와 우클릭 메뉴로 페이스를 전환합니다. 기본 색상 복원도 가능합니다. 글자색은 HTML 텍스트에 적용되며 캔버스/3D 그래픽의 재질 색상은 유지됩니다.
-- Windows에서는 좌우 방향키가 민트 LCD 위젯을 포함한 8종 전체를 순환합니다.
-- 작업 표시줄에는 표시하지 않습니다. 트레이 메뉴로 시계 표시·숨기기, 설정, 종료를 관리합니다. 트레이 아이콘 더블클릭은 시계를 다시 표시합니다.
-- 모니터 연결이 해제되거나 화면 밖 위치가 저장된 경우 사용 가능한 화면 안으로 위치를 보정합니다.
-- 설정은 Windows 사용자 프로필의 Electron `userData` 폴더에 `widget.json`으로 저장됩니다.
-
-배포용 실행 파일 생성:
-
-```powershell
-npm run build:windows
-```
-
-`release/`에 포터블 EXE가 생성됩니다. 자동 실행 설정 후에는 EXE 위치를 유지하세요. 개발 실행의 자동 실행은 현재 Electron 실행 파일과 프로젝트 경로를 사용합니다.
-
-기존 Android 빌드와 `app/` 화면은 그대로 사용할 수 있습니다.
-
-여러 시계 페이스를 넘기며 보는 **미니멀 탁상시계**. 단일 HTML 화면을 Capacitor WebView로 감싼 **오프라인 Android 앱(APK)** 입니다. 네트워크 없이 동작합니다.
-
-화면을 **터치하면 다음 시계로 전환**되고, 선택한 페이스는 다음에 다시 켜도 유지됩니다. 전체화면·다크 대응으로 책상 위 상시 디스플레이(예: 폴드 커버 화면)에 잘 어울립니다.
+여러 디자인으로 시간을 표시하는 오프라인 시계 앱입니다. **Windows에서는 데스크톱 위젯**, **Android에서는 전체화면 탁상시계**로 사용합니다. 글꼴과 화면 리소스를 앱에 포함해 네트워크 연결 없이 동작합니다.
 
 ## 시계 페이스
 
-아래 캡처는 갤럭시 Z 폴드5 **커버 화면(가로 2316×904)** 에서 찍은 것입니다.
+| 페이스 | 특징 | 지원 |
+| --- | --- | --- |
+| Mint LCD | 민트색 패널과 7세그먼트 숫자 | Windows |
+| Brutal Type | 핑크 포인트와 굵은 타이포그래피 | Windows · Android |
+| Minimal | 따뜻한 페이퍼 톤과 얇은 숫자 | Windows · Android |
+| Retro Flip | 중앙에 배치한 시·분 플립 카드, 하단 날짜·AM/PM, 초 표시 없음 | Windows · Android |
+| Typography | 큰 숫자와 세로 날짜, 버밀리언 포인트 | Windows · Android |
+| Neon | 시안·마젠타 빛 번짐 효과 | Windows · Android |
+| Terminal | 초록색 숫자와 터미널 화면 스타일 | Windows · Android |
+| Liquid Goo | 중앙의 액체 형태 시·분 블롭, 하단 초·날짜 | Windows · Android |
 
-### 1. Minimal — 미니멀
-얇은 Jost 서체의 따뜻한 페이퍼 톤. 날짜·초·AM/PM을 곁들인 단정한 구성.
+Windows에서는 **민트 LCD를 포함한 8종**을 사용할 수 있습니다. 폴드 Android 기기에서는 경첩 센서가 감지되면 **Fold Neon · Fold Solid · Fold Analog** 3D 페이스가 추가로 표시됩니다.
 
-![Minimal face](screenshots/minimal.png)
+## Windows 위젯 사용
 
-### 2. Retro Flip — 레트로 플립
-접혔다 펴지는 split-flap 애니메이션의 기계식 플립 시계.
-시·분을 화면 중앙에 표시하고 초 카드는 표시하지 않습니다. 날짜와 AM/PM은 아래쪽에 배치합니다.
+- **페이스 전환:** 시계에 포커스를 둔 상태에서 좌우 방향키를 누르거나, 우클릭 메뉴의 **시계 페이스**에서 선택합니다.
+- **메뉴 열기:** 시계 화면을 우클릭하면 트레이 아이콘과 동일한 메뉴가 열립니다. 화면 위에 별도 조작 버튼은 표시하지 않습니다.
+- **위치 이동:** 시계를 왼쪽 마우스 버튼으로 드래그합니다. 위치와 설정은 자동 저장됩니다.
+- **설정:** 우클릭 또는 트레이 메뉴의 **설정 열기**에서 항상 위 표시, Windows 시작 시 자동 실행, 크기, 글자색, 배경색, 불투명도를 조절합니다.
+- **트레이 관리:** 작업 표시줄에는 창을 표시하지 않습니다. 트레이 메뉴에서 표시·숨기기와 종료를 관리하며, 아이콘을 더블클릭하면 시계를 다시 표시합니다.
 
-![Flip face](screenshots/flip.png)
+시계가 보이지 않으면 작업 표시줄 오른쪽 **숨겨진 아이콘(∧)**에서 시계 아이콘을 찾아 더블클릭하세요.
 
-### 3. Typography — 타이포그래피
-Anton 대형 활자의 에디토리얼 포스터. 세로 날짜와 버밀리언 포인트.
+모든 Windows 페이스는 동일한 둥근 모서리와 테두리 두께를 사용하며, 모서리 바깥은 투명합니다. 테두리 색은 각 디자인의 강조색에 맞췄습니다. 배경만의 불투명도 조절은 민트 LCD에 적용되며, 전체 불투명도는 모든 페이스에 적용됩니다.
 
-![Typography face](screenshots/typography.png)
+### 크기와 화면 비율
 
-### 4. Neon — 네온
-Orbitron 서체에 시안/마젠타 글로우를 입힌 네온사인 시계.
+기본 크기는 **360×141px**입니다. [Galaxy Z Fold5 외부 화면의 공식 해상도](https://news.samsung.com/global/samsung-galaxy-z-flip5-and-galaxy-z-fold5-delivering-flexibility-and-versatility-without-compromise)인 2316×904를 가로로 놓은 **약 2.562:1** 비율을 사용합니다.
 
-![Neon face](screenshots/neon.png)
+| 크기 메뉴 | 너비 × 높이 |
+| --- | --- |
+| 작게 | 240×94px |
+| 보통 | 360×141px |
+| 크게 | 480×187px |
 
-## 주요 기능
+설정의 크기 슬라이더 또는 너비·높이 입력으로 더 세밀하게 조절할 수 있습니다. 기본 비율에서는 최소 **180×70px**, **Fold5 외부 화면 비율 유지**를 해제하면 **180×60px**까지 줄일 수 있습니다. 모니터 연결이 해제되거나 저장된 위치가 화면 밖에 있으면 사용 가능한 화면 안으로 보정합니다.
 
-- **4가지 시계 페이스** — 화면 터치(또는 ← / → 키)로 순환 전환
-- **선택 유지** — 마지막 페이스를 `localStorage`에 저장해 재실행 시 복원
-- **전체화면** — 상태바·내비게이션바를 숨긴 몰입형(immersive) 모드
-- **화면 꺼짐 방지** — 상시 켜두는 탁상시계용으로 화면이 자동으로 꺼지지 않음
-- **완전 오프라인** — 폰트까지 앱에 내장해 네트워크 없이 동작
-- **광폭 화면 대응** — 폴드 커버 화면 같은 초광폭 비율에서 콘텐츠를 키워 화면을 채움
+## Android 사용
 
-## 구조
+시계 화면을 터치하면 다음 페이스로 전환되고, 마지막 선택은 재실행 후에도 유지됩니다. 앱은 전체화면과 가로 방향으로 표시하며 화면 꺼짐을 방지합니다. 폴드 전용 3D 페이스는 기기의 경첩 각도에 맞춰 표시됩니다.
 
-```
-app/                 WebView에 들어가는 화면 (= Capacitor webDir)
-  index.html         4개 페이스 + 틱/전환/저장 로직 (단일 파일)
-  fonts/             내장 폰트 (Jost·Archivo·Orbitron 가변 + Anton, woff2)
-  manifest.json      웹 매니페스트
-android/             Capacitor가 생성한 네이티브 Android 프로젝트
-docs/DESIGN.md       페이스별 상세 디자인 사양서
-screenshots/         위 캡처 이미지
-```
+## 개발 환경
 
-## Android APK 빌드
+- **Node.js 24**와 npm
+- Windows 위젯 실행·EXE 빌드: **Windows**
+- Android APK 빌드: **JDK 21**, **Android SDK 36**
 
-[Capacitor](https://capacitorjs.com/) 기반입니다. **Node.js**, **JDK 17+**, **Android SDK**가 필요합니다.
+### 의존성 설치
 
 ```bash
-npm install                       # 의존성 설치
-npx cap copy android              # app/ 의 웹 에셋을 네이티브로 복사
-cd android && ./gradlew assembleDebug
-# 산출물: android/app/build/outputs/apk/debug/app-debug.apk
+npm ci
 ```
 
-웹 에셋(`app/`)을 수정한 뒤에는 `npx cap copy android`로 다시 동기화하세요.
+### Windows 실행 및 빌드
+
+```powershell
+npm start
+npm run build:windows
+```
+
+`release/`에 Windows x64 포터블 EXE가 생성됩니다. 자동 실행을 설정한 뒤에는 EXE 위치를 유지하세요. 개발 실행에서 자동 실행을 켜면 현재 Electron 실행 파일과 프로젝트 경로를 사용합니다.
+
+### Android APK 빌드
+
+처음 체크아웃했거나 네이티브 프로젝트 구성이 바뀌었으면 Capacitor를 동기화합니다.
+
+```powershell
+npx cap sync android
+cd android
+.\gradlew.bat assembleDebug
+```
+
+Linux·macOS 빌드 환경에서는 `android/` 디렉터리에서 `bash ./gradlew assembleDebug`를 실행합니다.
+
+산출물은 `android/app/build/outputs/apk/debug/app-debug.apk`입니다. 이후 웹 화면만 수정했다면 저장소 루트에서 `npx cap copy android`로 자산을 복사한 뒤 APK를 다시 빌드하세요.
+
+USB로 연결한 Android 기기에 설치하려면 다음을 실행합니다.
+
+```bash
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+디버그 APK는 개인 설치·테스트용입니다. 스토어 배포에는 별도의 릴리스 서명이 필요합니다. Windows 포터블 EXE에도 코드 서명은 적용하지 않습니다.
 
 ## APK·EXE 자동 빌드 및 릴리즈
 
 `.github/workflows/release.yml`은 PR에서 Android APK와 Windows x64 포터블 EXE를 빌드해 검증합니다. 이때는 릴리즈를 발행하지 않으며 빌드 결과를 Actions의 Artifacts에서 30일간 받을 수 있습니다.
 
-워크플로 변경을 `main`에 병합한 뒤 다음 중 한 방법으로 버전을 배포하세요.
+다음 중 한 방법으로 버전을 배포할 수 있습니다.
 
 1. `v1.1.0`처럼 `v주.부.패치` 형식의 태그를 만들고 원격에 푸시합니다.
 2. GitHub **Releases → Draft a new release**에서 해당 태그로 릴리즈를 발행합니다.
@@ -126,22 +113,39 @@ git push origin v1.1.0
 
 추가 Secret 없이 사용할 수 있습니다. APK는 프로젝트에 포함된 공개 CI 디버그 키로 서명하며, CI 릴리즈 간 업데이트 설치 시 같은 서명을 유지합니다. 로컬 개발 APK와 서명이 다르면 처음 전환할 때 기존 APK를 제거해야 할 수 있습니다. 이 키는 스토어 배포용이 아니며, Windows EXE에도 코드 서명은 적용하지 않습니다. 자세한 키 용도는 [.github/ci/README.md](.github/ci/README.md)에 있습니다.
 
-### 기기에 설치 (사이드로딩)
 
-디버그 APK는 자체 서명되어 바로 사이드로딩할 수 있습니다. USB로 연결 후:
+## 검증
 
 ```bash
-adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+npm run check:desktop
+npm test
 ```
 
-> 디버그 빌드는 개인 사이드로딩/테스트용입니다. 스토어 배포에는 릴리스 서명이 별도로 필요합니다.
+## 프로젝트 구조
 
-## 기술 노트
+```text
+app/
+  index.html       공통 시계 페이스, 시간 갱신·선택 저장, 폴드 3D 화면
+  fonts/           내장 글꼴
+  vendor/          폴드 3D용 라이브러리와 글꼴 데이터
+  icons/           웹 앱 아이콘
+  manifest.json    웹 매니페스트
 
-- **전체화면·배경**: 액티비티 테마를 `AppTheme.NoActionBar`(검정 배경)로 두고, `MainActivity`에서 `WindowInsetsControllerCompat`로 시스템 바를 숨기고 `FLAG_KEEP_SCREEN_ON`을 적용.
-- **오프라인 폰트**: Google Fonts를 링크하지 않고 woff2를 `@font-face`로 내장. (오프라인에서 플립 숫자 정렬이 깨지던 문제 해결)
-- **서비스워커 없음**: 번들 앱에서는 에셋이 이미 로컬이라 SW가 불필요하고 stale 캐시만 유발하므로 제거.
+desktop/
+  main.js          Windows 창·트레이·메뉴·설정 저장
+  preload.js       방향키·드래그와 데스크톱 화면 연결
+  faces.js         Windows 페이스 목록과 테두리 색상
+  widget.html      민트 LCD 화면
+  widget.js        민트 LCD 숫자 갱신
+  widget-frame.css 공통 둥근 프레임과 테두리
+  settings.html    위젯 설정 화면
+  settings.js      설정 조작과 저장
 
-페이스별 색상·간격·애니메이션 등 상세 사양은 [docs/DESIGN.md](docs/DESIGN.md)를 참고하세요.
+scripts/           릴리즈 버전 처리와 검증
+.github/workflows/ APK·EXE 자동 빌드 및 릴리즈 워크플로
+android/           Capacitor 네이티브 Android 프로젝트
+screenshots/       초기 Android 디자인 캡처
+docs/              디자인 참고 자료와 개발 기록
+```
 
-비율 기준: [삼성 Galaxy Z Fold5 공식 화면 사양](https://news.samsung.com/global/samsung-galaxy-z-flip5-and-galaxy-z-fold5-delivering-flexibility-and-versatility-without-compromise). 크기 슬라이더와 너비·높이 변경 시에도 기본적으로 이 비율을 유지합니다.
+Windows의 위치·페이스·색상 등 설정은 사용자별 앱 데이터 폴더의 `widget.json`에 저장합니다. Android의 페이스 선택은 `localStorage`에 저장합니다.
