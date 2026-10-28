@@ -59,17 +59,9 @@ window.addEventListener('DOMContentLoaded', () => {
   style.textContent = `html,body,body.widget-bg{background:transparent!important}
     .stage.widget-frame{inset:7px;overflow:hidden}
     #nav{display:none}
-    #widget-tools{position:absolute;right:8px;top:8px;z-index:9999;display:flex;gap:4px;-webkit-app-region:no-drag;opacity:.15}
-    #widget-tools:hover,#widget-tools:focus-within{opacity:1}
-    #widget-tools button{border:1px solid #888;border-radius:6px;background:#222;color:#fff;padding:5px 9px;cursor:pointer}
     body.widget-fg .face,body.widget-fg .face *{color:var(--widget-fg)!important}
     body.widget-bg .face{background:var(--widget-bg)!important}`;
   document.head.append(style);
-  const tools = document.createElement('div'); tools.id = 'widget-tools';
-  const next = document.createElement('button'); next.textContent = '다음 시계';
-  next.onclick = () => ipcRenderer.send('widget:cycle', 1);
-  const settings = document.createElement('button'); settings.textContent = '설정'; settings.onclick = () => ipcRenderer.send('widget:settings');
-  tools.append(next, settings); stage.append(tools);
   document.addEventListener('deskclock:face-changed', event => ipcRenderer.send('widget:face-changed', event.detail));
   const render = state => {
     document.body.classList.toggle('widget-fg', !!state.foreground); document.body.classList.toggle('widget-bg', !!state.background);
