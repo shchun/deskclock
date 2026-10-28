@@ -36,9 +36,9 @@ test('widget restores visible bounds, saves changes, and configures login startu
   assert.throws(() => handlers['widget:update']({ sender: {} }, {}));
   const clamped = handlers['widget:update']({ sender: windows[1].webContents }, { opacity: 0, width: 99999, foreground: 'invalid' });
   assert.equal(clamped.opacity, .2); assert.equal(clamped.width, 1600); assert.equal(clamped.foreground, '');
-  const small = handlers['widget:update']({ sender: windows[1].webContents }, { width: 180, height: 60, style: 'original', originalFace: 'face9' });
+  const small = handlers['widget:update']({ sender: windows[1].webContents }, { width: 180, height: 60, style: 'original', originalFace: 'face6' });
   assert.equal(clock.bounds.width, 180); assert.equal(clock.bounds.height, 70);
-  assert.equal(small.originalFace, 'face9'); assert.equal(small.faces.length, 10);
+  assert.equal(small.originalFace, 'face6'); assert.equal(small.faces.length, 8);
   assert.equal(small.lockAspect, true);
   const tall = handlers['widget:update']({ sender: windows[1].webContents }, { height: 200 });
   assert.equal(tall.width, Math.round(200 * 2316 / 904)); assert.equal(tall.height, 200);
@@ -57,4 +57,8 @@ test('widget restores visible bounds, saves changes, and configures login startu
   listeners['widget:cycle']({ sender: {} }, 1);
   listeners['widget:cycle']({ sender: clock.webContents }, 2);
   assert.equal(selected(), 'widget');
+  for (const removed of ['face4', 'face9']) {
+    const restored = handlers['widget:update']({ sender: windows[1].webContents }, { style: 'original', originalFace: removed });
+    assert.equal(restored.originalFace, 'face5');
+  }
 });

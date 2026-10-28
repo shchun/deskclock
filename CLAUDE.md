@@ -19,7 +19,7 @@ deskclock/
 │   └── fonts/                  # 4 WOFF2 fonts (all embedded for offline use)
 │       ├── jost-var.woff2      # Jost variable (weights 200-500) — face1 Minimal
 │       ├── archivo-var.woff2   # Archivo variable (weights 500-700) — face2 Flip
-│       ├── orbitron-var.woff2  # Orbitron variable (weights 400-700) — face4 Neon
+│       ├── orbitron-var.woff2  # Orbitron variable (weights 400-700) — face8 Neon
 │       └── anton-400.woff2     # Anton 400 — face3 Typography
 ├── android/                    # Capacitor-generated Android project (Gradle)
 │   └── app/src/main/
@@ -87,12 +87,10 @@ The file contains styles and markup for the clock faces, the main clock IIFE, an
 |--------|-----------------|----------|-------|
 | face1  | Brutal Minimal  | Archivo  | Light — vivid yellow (#FFED47), hard offset shadows |
 | face3  | Brutal Type     | Anton    | Light — hot-pink offset poster |
-| face4  | Brutal Electric | Orbitron | Dark — navy grid, lime/blue blocks |
 | face5  | Minimal         | Jost     | Light — warm paper (#ECE9E1) |
 | face6  | Retro Flip      | Archivo  | Dark — mechanical split-flap animation |
 | face7  | Typography      | Anton    | Light — large editorial poster |
 | face8  | Neon            | Orbitron | Dark — cyan/magenta glow shadows |
-| face9  | Liquid Glass    | Jost     | Dark — frosted glass + refracting blobs |
 | face10 | Terminal        | monospace| Dark — green CRT, blinking cursor |
 | face11 | Liquid Goo      | Jost     | Dark — SVG metaball blobs (violet) |
 

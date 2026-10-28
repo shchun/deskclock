@@ -13,5 +13,11 @@ test('shipped clock screens have no audio capture, detection UI, or recording pe
   }
   for (const name of ['app/sonar-test.html', 'android/app/src/main/assets/public/sonar-test.html']) assert.equal(fs.existsSync(path.join(root, name)), false, name);
   const html = fs.readFileSync(path.join(root, 'app/index.html'), 'utf8');
+  assert.doesNotMatch(html, /id="face[49]"|[.#]f[49]-|#face[49]\b|Brutal Electric|Liquid Glass/i);
+  assert.equal(require('./faces').length, 8);
+  const animations = new Set([...html.matchAll(/@keyframes\s+([\w-]+)/g)].map(match => match[1]));
+  for (const match of html.matchAll(/animation\s*:\s*([a-zA-Z_][\w-]*)/g)) {
+    if (match[1] !== 'none') assert.ok(animations.has(match[1]), `Missing animation: ${match[1]}`);
+  }
   for (const face of require('./faces')) assert.ok(html.includes(`id="${face.id}"`), face.name);
 });
