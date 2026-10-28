@@ -16,25 +16,38 @@ window.addEventListener('DOMContentLoaded', () => {
     ipcRenderer.send('widget:cycle', event.key === 'ArrowRight' ? 1 : -1);
   }, true);
   if (!location.pathname.endsWith('/index.html')) return;
+  const frameStyle = document.createElement('link');
+  frameStyle.rel = 'stylesheet';
+  frameStyle.href = new URL('../desktop/widget-frame.css', location.href).href;
+  document.head.append(frameStyle);
+  const stage = document.getElementById('stage');
+  stage.classList.add('widget-frame');
   const style = document.createElement('style');
-  style.textContent = `body::after{content:'';position:fixed;inset:0;z-index:9998;-webkit-app-region:drag}
-    #widget-tools{position:fixed;right:8px;top:8px;z-index:9999;display:flex;gap:4px;-webkit-app-region:no-drag;opacity:.15}
+  style.textContent = `html,body,body.widget-bg{background:transparent!important}
+    .stage.widget-frame{inset:7px;overflow:hidden}
+    #nav{display:none}
+    .stage::after{content:'';position:absolute;inset:0;z-index:9998;-webkit-app-region:drag}
+    #widget-tools{position:absolute;right:8px;top:8px;z-index:9999;display:flex;gap:4px;-webkit-app-region:no-drag;opacity:.15}
     #widget-tools:hover,#widget-tools:focus-within{opacity:1}
     #widget-tools button{border:1px solid #888;border-radius:6px;background:#222;color:#fff;padding:5px 9px;cursor:pointer}
     body.widget-fg .face,body.widget-fg .face *{color:var(--widget-fg)!important}
-    body.widget-bg,body.widget-bg .face{background:var(--widget-bg)!important}`;
+    body.widget-bg .face{background:var(--widget-bg)!important}`;
   document.head.append(style);
   const tools = document.createElement('div'); tools.id = 'widget-tools';
   const next = document.createElement('button'); next.textContent = '다음 시계';
   next.onclick = () => ipcRenderer.send('widget:cycle', 1);
   const settings = document.createElement('button'); settings.textContent = '설정'; settings.onclick = () => ipcRenderer.send('widget:settings');
-  tools.append(next, settings); document.body.append(tools);
+  tools.append(next, settings); stage.append(tools);
   document.addEventListener('deskclock:face-changed', event => ipcRenderer.send('widget:face-changed', event.detail));
   const render = state => {
     document.body.classList.toggle('widget-fg', !!state.foreground); document.body.classList.toggle('widget-bg', !!state.background);
     document.body.style.setProperty('--widget-fg', state.foreground); document.body.style.setProperty('--widget-bg', state.background);
+    const face = state.faces.find(item => item.id === state.originalFace);
+    document.documentElement.style.setProperty('--widget-border-color', face?.borderColor || '#438b69');
     document.dispatchEvent(new CustomEvent('deskclock:select-face', { detail: state.originalFace }));
   };
   ipcRenderer.on('widget:changed', (_event, state) => render(state));
   ipcRenderer.invoke('widget:get').then(render);
+  // The frame stylesheet arrives after the web clock's initial fit.
+  frameStyle.addEventListener('load', () => window.dispatchEvent(new Event('resize')));
 });

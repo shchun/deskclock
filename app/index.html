@@ -793,7 +793,7 @@
     const f = FACES[active], ft = f.fit;
     if(!f.el || !ft) return;
     const el = f.el.querySelector(ft.sel);
-    if(el) fitEl(el, window.innerWidth*ft.aw, window.innerHeight*ft.ah, ft.max);
+    if(el) fitEl(el, f.el.clientWidth*ft.aw, f.el.clientHeight*ft.ah, ft.max);
   }
   let lastHlen = 0;
   window.addEventListener('resize', fitActive);
