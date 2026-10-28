@@ -55,7 +55,6 @@
   /* FLIP CARD (공유 인프라 — 클래식 Retro Flip / face6 에서 사용) */
   /* ======================================================= */
   .flip-group{ display:flex; gap:1.1vmin; }
-  .flip-group.sec{ transform:scale(.5); transform-origin:center bottom; margin-left:.4vmin; }
   @keyframes f2blink{ 50%{ opacity:.25; } }
 
   .flip-card{
@@ -74,9 +73,9 @@
   .flip-card .num{
     position:absolute; left:0; width:100%; height:18vmin; line-height:18vmin;
     text-align:center; font-variant-numeric:tabular-nums;
-    /* 내장 가변 Archivo의 ascent가 커서 베이스라인이 낮게 잡혀 숫자 아래가 카드에
-       잘리는 것을 보정 — 모든 num에 동일 적용해 분할 이음새 정렬은 유지된다. */
-    transform:translateY(-2.5vmin);
+    /* Archivo 숫자의 시각적 중심을 카드 중앙에 맞춘다.
+       반쪽과 회전 레이어에 동일하게 적용해 분할 이음새 정렬을 유지한다. */
+    transform:translateY(.4vmin);
   }
   .flip-card .top .num, .flip-card .top-flip .num{ top:0; }
   .flip-card .bottom .num, .flip-card .bottom-flip .num{ bottom:0; }
@@ -148,8 +147,8 @@
   /* FACE 6 — RETRO FLIP (classic)                           */
   /* ======================================================= */
   #face6{ background:radial-gradient(120% 90% at 50% 0%, #202024 0%, #141416 55%, #0e0e10 100%); color:#f3f1ea; }
-  .f6-wrap{ display:flex; flex-direction:column; align-items:center; gap:4.2vmin; }
-  .f6-row{ display:flex; align-items:center; gap:1.6vmin; }
+  .f6-wrap{ display:grid; grid-template-rows:1fr auto 1fr; justify-items:center; row-gap:2.4vmin; }
+  .f6-row{ grid-row:2; display:flex; align-items:center; gap:1.6vmin; }
   .f6-colon{ display:flex; flex-direction:column; gap:4vmin; padding:0 .3vmin; }
   .f6-colon i{ width:1.5vmin; height:1.5vmin; border-radius:50%; background:#56565c; display:block; }
   .f6-colon.blink{ animation:f2blink 1s steps(1,end) infinite; }
@@ -161,7 +160,7 @@
   #face6 .flip-card .bottom{ border-radius:0 0 1.4vmin 1.4vmin; background:#202024; }
   #face6 .flip-card .top-flip{ border-radius:1.4vmin 1.4vmin 0 0; background:#2b2b30; border-bottom:1px solid rgba(0,0,0,.5); }
   #face6 .flip-card .bottom-flip{ border-radius:0 0 1.4vmin 1.4vmin; background:#202024; }
-  .f6-meta{ display:flex; align-items:center; gap:2.4vmin; }
+  .f6-meta{ grid-row:3; align-self:start; display:flex; align-items:center; gap:2.4vmin; }
   .f6-ampm{ font-family:'Archivo',sans-serif; font-weight:600; font-size:2.4vmin; letter-spacing:.25em;
     padding:.9vmin 1.8vmin; border-radius:.8vmin; background:#26262b; color:#f3b14e; box-shadow:0 .6vmin 1.4vmin rgba(0,0,0,.4); }
   .f6-date{ font-weight:400; font-size:2.2vmin; letter-spacing:.4em; white-space:nowrap; color:#9a968c; text-transform:uppercase; }
@@ -550,7 +549,6 @@
           <div class="flip-group" id="f6-h"></div>
           <div class="f6-colon blink"><i></i><i></i></div>
           <div class="flip-group" id="f6-m"></div>
-          <div class="flip-group sec" id="f6-s"></div>
         </div>
         <div class="f6-meta">
           <div class="f6-ampm" data-bind="ampm">PM</div>
@@ -826,7 +824,6 @@
   }
   const hCards6=buildFlip(document.getElementById('f6-h'),2);
   const mCards6=buildFlip(document.getElementById('f6-m'),2);
-  const sCards6=buildFlip(document.getElementById('f6-s'),2);
 
   /* ---------- ticking ---------- */
   const DAYS=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
@@ -841,7 +838,7 @@
   function renderFlip(force){
     const inst = force===false;
     const a6 = !inst && FACES[active] && FACES[active].id==='face6';
-    setGroup(hCards6,cur.h,a6); setGroup(mCards6,cur.m,a6); setGroup(sCards6,cur.s,a6);
+    setGroup(hCards6,cur.h,a6); setGroup(mCards6,cur.m,a6);
   }
 
   function tick(){

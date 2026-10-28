@@ -53,6 +53,7 @@ npm run build:windows
 
 ### 2. Retro Flip — 레트로 플립
 접혔다 펴지는 split-flap 애니메이션의 기계식 플립 시계.
+시·분을 화면 중앙에 표시하고 초 카드는 표시하지 않습니다. 날짜와 AM/PM은 아래쪽에 배치합니다.
 
 ![Flip face](screenshots/flip.png)
 
