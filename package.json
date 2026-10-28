@@ -7,7 +7,7 @@
   "main": "desktop/main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node --test desktop/*.test.js",
+    "test": "node --test desktop/*.test.js scripts/*.test.cjs",
     "build:windows": "electron-builder --win portable --x64",
     "check:desktop": "node --check desktop/main.js && node --check desktop/preload.js && node --check desktop/settings.js && node --check desktop/widget.js"
   },
