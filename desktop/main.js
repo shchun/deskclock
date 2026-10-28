@@ -4,7 +4,7 @@ const path = require('node:path');
 const faces = require('./faces');
 // Galaxy Z Fold5 cover screen, rotated to landscape: Samsung's 2316 × 904 pixels.
 const aspectRatio = 2316 / 904;
-let clock, settingsWindow, tray, state, saveTimer;
+let clock, settingsWindow, tray, state, saveTimer, appMenu, drag;
 const defaults = { width: 360, height: Math.round(360 / aspectRatio), lockAspect: true, compactVersion: 1, originalFace: 'face5', alwaysOnTop: true, opacity: 1, backgroundOpacity: .96, readabilityVersion: 1, foreground: '', background: '', style: 'widget' };
 const statePath = () => path.join(app.getPath('userData'), 'widget.json');
 function normalize(value = {}) {
@@ -77,7 +77,15 @@ function menuItems() {
     { label: '크기', submenu: [[240, '작게'], [360, '보통'], [480, '크게']].map(([width, name]) => ({ label: `${name} · ${width} × ${Math.round(width / aspectRatio)}`, click: () => { state.width = width; state.height = Math.round(width / aspectRatio); state.lockAspect = true; apply(); save(); } })) },
     { label: '설정 열기', click: openSettings }, { type: 'separator' }, { label: '종료', click: () => app.quit() }];
 }
-function updateMenu() { if (tray) tray.setContextMenu(Menu.buildFromTemplate(menuItems())); }
+function updateMenu() {
+  appMenu = Menu.buildFromTemplate(menuItems());
+  if (tray) tray.setContextMenu(appMenu);
+}
+function showClockMenu(event) {
+  event.preventDefault();
+  updateMenu();
+  appMenu.popup({ window: clock });
+}
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (clock) { clock.show(); updateMenu(); } });
@@ -96,8 +104,10 @@ else {
     clock.once('ready-to-show', () => { apply(); clock.show(); });
     const recordBounds = () => { Object.assign(state, clock.getBounds()); clearTimeout(saveTimer); saveTimer = setTimeout(() => { save(); broadcast(); }, 250); };
     clock.on('move', recordBounds); clock.on('resize', recordBounds);
-    clock.webContents.on('context-menu', () => Menu.buildFromTemplate(menuItems()).popup({ window: clock }));
-    clock.on('system-context-menu', event => { event.preventDefault(); Menu.buildFromTemplate(menuItems()).popup({ window: clock }); });
+    clock.webContents.on('context-menu', showClockMenu);
+    clock.on('system-context-menu', showClockMenu);
+    clock.webContents.on('did-start-navigation', () => { drag = null; });
+    clock.on('hide', () => { drag = null; });
     // A PNG generated in memory avoids SVG/ICO platform decoding differences in the tray.
     const pixels = Buffer.alloc(32 * 32 * 4);
     for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
@@ -122,6 +132,21 @@ else {
       apply(); save(); return snapshot();
     });
     ipcMain.on('widget:settings', openSettings);
+    ipcMain.on('widget:drag-start', (event, cursor) => {
+      if (event.sender !== clock.webContents || !cursor || !Number.isFinite(cursor.x) || !Number.isFinite(cursor.y)) return;
+      drag = { cursor: { x: Math.round(cursor.x), y: Math.round(cursor.y) }, bounds: clock.getBounds() };
+    });
+    ipcMain.on('widget:drag-move', event => {
+      if (event.sender !== clock.webContents || !drag) return;
+      const cursor = screen.getCursorScreenPoint();
+      clock.setPosition(drag.bounds.x + cursor.x - drag.cursor.x, drag.bounds.y + cursor.y - drag.cursor.y);
+    });
+    ipcMain.on('widget:drag-end', event => {
+      if (event.sender !== clock.webContents || !drag) return;
+      drag = null;
+      Object.assign(state, clock.getBounds());
+      clearTimeout(saveTimer); save();
+    });
     ipcMain.on('widget:cycle', (event, direction) => {
       if (event.sender !== clock.webContents || (direction !== 1 && direction !== -1)) return;
       cycleFace(direction);
