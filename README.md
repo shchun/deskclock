@@ -99,6 +99,31 @@ cd android && ./gradlew assembleDebug
 
 웹 에셋(`app/`)을 수정한 뒤에는 `npx cap copy android`로 다시 동기화하세요.
 
+## APK·EXE 자동 빌드 및 릴리즈
+
+`.github/workflows/release.yml`은 PR에서 Android APK와 Windows x64 포터블 EXE를 빌드해 검증합니다. 이때는 릴리즈를 발행하지 않으며 빌드 결과를 Actions의 Artifacts에서 30일간 받을 수 있습니다.
+
+워크플로 변경을 `main`에 병합한 뒤 다음 중 한 방법으로 버전을 배포하세요.
+
+1. `v1.1.0`처럼 `v주.부.패치` 형식의 태그를 만들고 원격에 푸시합니다.
+2. GitHub **Releases → Draft a new release**에서 해당 태그로 릴리즈를 발행합니다.
+3. 이미 존재하는 태그를 재빌드하려면 **Actions → Build APK and EXE → Run workflow**에서 태그를 입력합니다.
+
+```bash
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+태그를 올리면 릴리즈도 자동 생성됩니다. 모든 빌드가 성공하면 다음 파일이 릴리즈에 첨부되어 버전별로 보관됩니다. 이미 발행한 릴리즈는 설명을 유지하면서 같은 이름의 첨부 파일만 갱신합니다.
+
+- `DeskClock-1.1.0-android-debug.apk`
+- `DeskClock-1.1.0-windows-x64.exe`
+- `SHA256SUMS.txt`
+
+두 빌드는 같은 Git 커밋을 사용하며, EXE와 APK의 버전은 태그에 맞춥니다. Android `versionCode`는 `주×1,000,000 + 부×1,000 + 패치`로 계산합니다(부·패치는 0–999, 전체 코드는 Android 허용 범위). 정식 버전 태그만 지원하며 베타·RC 태그는 빌드 전에 거부합니다.
+
+추가 Secret 없이 사용할 수 있습니다. APK는 프로젝트에 포함된 공개 CI 디버그 키로 서명하며, CI 릴리즈 간 업데이트 설치 시 같은 서명을 유지합니다. 로컬 개발 APK와 서명이 다르면 처음 전환할 때 기존 APK를 제거해야 할 수 있습니다. 이 키는 스토어 배포용이 아니며, Windows EXE에도 코드 서명은 적용하지 않습니다. 자세한 키 용도는 [.github/ci/README.md](.github/ci/README.md)에 있습니다.
+
 ### 기기에 설치 (사이드로딩)
 
 디버그 APK는 자체 서명되어 바로 사이드로딩할 수 있습니다. USB로 연결 후:
