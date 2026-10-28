@@ -872,6 +872,10 @@
     return (!isNaN(n) && n>=0 && n<FACES.length) ? n : 0;
   }
   let active = loadActive();
+  document.addEventListener('deskclock:select-face', event => {
+    const index = FACES.findIndex(face => face.id === event.detail);
+    if(index >= 0 && index !== active) go(index);
+  });
 
   function go(i){
     active=(i+FACES.length)%FACES.length;
@@ -881,6 +885,7 @@
     });
     stage.dataset.theme = FACES[active].theme;
     localStorage.setItem('deskclock.face', FACES[active].id);
+    document.dispatchEvent(new CustomEvent('deskclock:face-changed', { detail: FACES[active].id }));
     if(FACES[active].id==='face6') renderFlip(false); // set instantly, no animation
     // 폴드 3D 엔진은 해당 face 활성일 때만 렌더(배터리/성능). 폴드 페이스 id를 넘겨 스타일 선택.
     if(window.Fold3D) window.Fold3D.setActive(FACES[active].id);

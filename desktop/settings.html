@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Desk Clock 설정</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:26px;background:#171a20;color:#eff1f5;font:14px system-ui}h1{font-size:23px;margin:0 0 8px}p{color:#aeb6c5;line-height:1.6}label{display:flex;align-items:center;justify-content:space-between;margin:22px 0;gap:12px}input[type=number]{width:100px;padding:7px}input[type=range]{width:170px}input[type=checkbox]{width:18px;height:18px}button{padding:9px 14px;border:0;border-radius:6px;cursor:pointer}#status{min-height:25px;color:#9ee4c2}small{color:#aeb6c5}input:focus-visible,button:focus-visible{outline:2px solid #80baff;outline-offset:3px}
+</style></head><body><h1>위젯 설정</h1><p>시계를 드래그해 이동하세요. 위치와 설정은 자동 저장됩니다.</p>
+<label>항상 위에 표시<input id="alwaysOnTop" type="checkbox"></label>
+<label>Windows 시작 시 자동 실행<input id="autoStart" type="checkbox"></label>
+<label>시계 페이스<select id="faceChoice"><option value="widget">민트 LCD 위젯</option></select></label>
+<label>Fold5 외부 화면 비율 유지<input id="lockAspect" type="checkbox"></label>
+<label>크기 <output id="sizeValue"></output><input id="size" type="range" min="180" max="800" step="10"></label>
+<label>너비 (180–1600 px)<input id="width" type="number" min="180" max="1600" step="10"></label>
+<label>높이 (60–1000 px)<input id="height" type="number" min="60" max="1000" step="10"></label>
+<label>글자색<input id="foreground" type="color" value="#ffffff"></label>
+<label>배경색<input id="background" type="color" value="#171a20"></label>
+<label>배경 불투명도 <output id="backgroundOpacityValue"></output><input id="backgroundOpacity" type="range" min="0" max="1" step="0.01"></label>
+<label>불투명도 <output id="opacityValue"></output><input id="opacity" type="range" min="0.2" max="1" step="0.01"></label>
+<button id="resetColors">기본 색상 복원</button><p id="status" role="status"></p><small>배경 불투명도는 LCD 위젯에 적용됩니다. 우클릭 또는 트레이 메뉴에서 설정과 종료를 사용할 수 있습니다.</small>
+<script src="settings.js"></script></body></html>
