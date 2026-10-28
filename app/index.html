@@ -235,6 +235,14 @@
   /* 검은 배경 + 바이올렛/인디고 단일 hue 액체 블롭 + SVG goo 필터 */
   /* blur+contrast 트릭으로 숫자 블롭들이 액체처럼 뭉치고 갈라진다  */
   #face11{ background:#060610; color:#fff; overflow:visible; }
+  .f11-wrap{
+    position:relative; width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .f11-meta{
+    position:absolute; bottom:2vmin; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:.5vmin;
+  }
 
   /* 배경 앰비언트: 멀리서 느껴지는 발광 */
   #face11::before{
@@ -597,7 +605,7 @@
     <!-- 각 숫자를 독립 블롭(.f11-digit)으로 표현, goo 필터가 인접 블롭을 액체처럼 합쳐줌 -->
     <!-- 구조: [goo-container: HH콜론MM 블롭 행] + [초 소형 블롭] + [날짜 텍스트] -->
     <section class="face" id="face11">
-      <div style="position:relative; display:flex; flex-direction:column; align-items:center; gap:0.5vmin;">
+      <div class="f11-wrap">
         <!-- 메인 goo 컨테이너 — feBlend 덕에 .f11-digit-label 텍스트는 선명하게 유지됨 -->
         <div class="f11-goo-container">
           <div class="f11-time-row" id="f11-time-row">
@@ -610,13 +618,14 @@
             <div class="f11-digit"><span class="f11-digit-label" data-bind="d3">0</span></div>
           </div>
         </div>
-        <!-- 초 표시 — 독립 소형 goo 필터 적용 -->
-        <div class="f11-sec-wrap" id="f11-sec-wrap">
-          <div class="f11-sec-blob"><span class="f11-sec-label" data-bind="s0">0</span></div>
-          <div class="f11-sec-blob"><span class="f11-sec-label" data-bind="s1">0</span></div>
+        <div class="f11-meta">
+          <!-- 초·날짜는 시간 행의 중앙 정렬에 영향을 주지 않도록 하단에 배치 -->
+          <div class="f11-sec-wrap" id="f11-sec-wrap">
+            <div class="f11-sec-blob"><span class="f11-sec-label" data-bind="s0">0</span></div>
+            <div class="f11-sec-blob"><span class="f11-sec-label" data-bind="s1">0</span></div>
+          </div>
+          <div class="f11-date" data-bind="date">SUNDAY · JUNE 14</div>
         </div>
-        <!-- 날짜 -->
-        <div class="f11-date" data-bind="date">SUNDAY · JUNE 14</div>
       </div>
     </section>
 
