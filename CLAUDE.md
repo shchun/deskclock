@@ -79,7 +79,7 @@ Icon design: minimal clock face at 10:10 position, white circle/hands, amber cen
 
 ### Web layer (`app/index.html` — the entire app)
 
-The file contains styles and markup for the clock faces, the main clock IIFE, and the fold-only 3D module. Microphone capture, ultrasonic detection, and automatic presence dimming have been removed. The web layer uses no framework or build step.
+The file contains styles and markup for the clock faces, and the main clock IIFE. Microphone capture, ultrasonic detection, and automatic presence dimming have been removed. The web layer uses no framework or build step.
 
 **`FACES` array** is the source of truth and is **data-driven**: each entry is `{ id, name, theme, fit, render }`, where `render(parts, refs)` updates that face and `fit` holds its scaling config (see below). At init each face's update nodes are auto-collected from `[data-bind]` attributes into `f.r` — there are no hand-written per-element `const` refs.
 
@@ -97,12 +97,11 @@ Desktop-compatible faces are numbered `face3,5,6,7,8,10,11` (not contiguous); re
 
 **Key functions:**
 
-- **`go(i)`** — switches faces, toggles `.active`/nav dots, sets `stage.dataset.theme`, persists the face **id** to `localStorage` (see `loadActive()` for the id→index lookup with legacy-numeric fallback). Re-renders flip face without animation on entry.
-- **`tick()`** — builds one shared **`parts`** model (`h12, hh, mm, ss, ampm, h24` + three pre-formatted date strings `dlongDot`/`dlongMon3`/`dshort`), then calls every face's `render(parts, f.r)`. Per-face update logic lives in the `FACES` entries, not in `tick()`. Uses DAYS/DAYS3/MON/MON3 constant arrays for full and 3-letter weekday/month. (Colon/AM-PM spans are static in markup — `render` only sets text on the bound number nodes, so no `innerHTML` is rebuilt each second.)
+- **`go(i)`** — switches faces, toggles `.active`, persists the face **id** to `localStorage` (see `loadActive()` for the id→index lookup with legacy-numeric fallback). Re-renders flip face without animation on entry.
+- **`tick()`** — builds one shared **`parts`** model (`h12, hh, mm, ss, ampm, h24` + three pre-formatted date strings `dlongDot`/`dstack`/`dshort`), then calls every face's `render(parts, f.r)`. Per-face update logic lives in the `FACES` entries, not in `tick()`. Uses DAYS/DAYS3/MON/MON3 constant arrays for full and 3-letter weekday/month. (Colon/AM-PM spans are static in markup — `render` only sets text on the bound number nodes, so no `innerHTML` is rebuilt each second.)
 - **`loop()`** — drives `tick()` on the second boundary: `setTimeout(loop, 1000 - Date.now() % 1000)` instead of `setInterval`, so seconds never drift.
 - **`fitActive()` / `fitEl()`** — scale content to fill the viewport. Faces are sized in `vmin`, which reads small on ultra-wide screens (target: Galaxy Z Fold cover display, ~2316×904). `fitActive` reads the active face's `fit` config (`{sel, aw, ah, max}`) — no per-id branching — and `fitEl` computes a scale factor from the actual bounding box so content fills the available box without overflow. Re-runs on resize, font load, and when the hour digit count changes (1- vs 2-digit hours).
 - **Flip clock** (`buildFlip` / `setCard` / `setGroup` / `renderFlip`) — CSS split-flap animation driven by `animationend` events. Each digit has fold (0.3 s) + unfold (0.3 s) phases. `face6.render` calls `renderFlip()`, which only animates while `face6` is active.
-- **Nav idle-hide** — shows on any touch/mouse/key event, auto-hides after 4 s.
 - **SW cleanup** — on first load, unregisters any stale service worker (SW was removed to prevent stale-cache bugs in the bundled APK).
 - **`prefers-reduced-motion`** — flip animation is suppressed when the system accessibility setting is on.
 

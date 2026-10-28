@@ -15,6 +15,12 @@ test('shipped clock screens have no audio capture, detection UI, or recording pe
   const html = fs.readFileSync(path.join(root, 'app/index.html'), 'utf8');
   assert.doesNotMatch(html, /id="face[149]"|[.#]f[149]-|#face[149]\b|Brutal Minimal|Brutal Electric|Liquid Glass/i);
   assert.equal(require('./faces').length, 7);
+  assert.doesNotMatch(html, /fold3d|Fold3D|__deskAddFace|id="face1[234]"|vendor\//i);
+  const activity = fs.readFileSync(path.join(root, 'android/app/src/main/java/com/precipi/deskclock/MainActivity.java'), 'utf8');
+  assert.doesNotMatch(activity, /TYPE_HINGE_ANGLE|SensorManager|JavascriptInterface|DeviceBridge/);
+  for (const resource of ['three.module.js', 'FontLoader.js', 'TextGeometry.js', 'helvetiker_bold.typeface.json']) {
+    assert.equal(fs.existsSync(path.join(root, 'app/vendor', resource)), false, resource);
+  }
   const animations = new Set([...html.matchAll(/@keyframes\s+([\w-]+)/g)].map(match => match[1]));
   for (const match of html.matchAll(/animation\s*:\s*([a-zA-Z_][\w-]*)/g)) {
     if (match[1] !== 'none') assert.ok(animations.has(match[1]), `Missing animation: ${match[1]}`);

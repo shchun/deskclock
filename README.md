@@ -6,16 +6,16 @@
 
 | 페이스 | 특징 | 지원 |
 | --- | --- | --- |
-| Mint LCD | 민트색 패널과 7세그먼트 숫자 | Windows |
+| Mint LCD | 민트색 패널과 7세그먼트 숫자 | Windows · Android |
 | Brutal Type | 핑크 포인트와 굵은 타이포그래피 | Windows · Android |
 | Minimal | 따뜻한 페이퍼 톤과 얇은 숫자 | Windows · Android |
 | Retro Flip | 중앙에 배치한 시·분 플립 카드, 하단 날짜·AM/PM, 초 표시 없음 | Windows · Android |
-| Typography | 큰 숫자와 세로 날짜, 버밀리언 포인트 | Windows · Android |
+| Typography | 큰 숫자와 왼쪽 중앙의 두 줄 날짜, 버밀리언 포인트 | Windows · Android |
 | Neon | 시안·마젠타 빛 번짐 효과 | Windows · Android |
 | Terminal | 초록색 숫자와 터미널 화면 스타일 | Windows · Android |
 | Liquid Goo | 중앙의 액체 형태 시·분 블롭, 하단 초·날짜 | Windows · Android |
 
-Windows에서는 **민트 LCD를 포함한 8종**을 사용할 수 있습니다. 폴드 Android 기기에서는 경첩 센서가 감지되면 **Fold Neon · Fold Solid · Fold Analog** 3D 페이스가 추가로 표시됩니다.
+Windows와 Android 모두 **민트 LCD를 포함한 8종**을 사용할 수 있습니다.
 
 ## Windows 위젯 사용
 
@@ -43,7 +43,7 @@ Windows에서는 **민트 LCD를 포함한 8종**을 사용할 수 있습니다.
 
 ## Android 사용
 
-시계 화면을 터치하면 다음 페이스로 전환되고, 마지막 선택은 재실행 후에도 유지됩니다. 앱은 전체화면과 가로 방향으로 표시하며 화면 꺼짐을 방지합니다. 폴드 전용 3D 페이스는 기기의 경첩 각도에 맞춰 표시됩니다.
+시계 화면을 터치하면 다음 페이스로 전환되고, 마지막 선택은 재실행 후에도 유지됩니다. 앱은 전체화면과 가로 방향으로 표시하며 화면 꺼짐을 방지합니다.
 
 ## 개발 환경
 
@@ -125,9 +125,8 @@ npm test
 
 ```text
 app/
-  index.html       공통 시계 페이스, 시간 갱신·선택 저장, 폴드 3D 화면
+  index.html       공통 시계 페이스, 시간 갱신·선택 저장
   fonts/           내장 글꼴
-  vendor/          폴드 3D용 라이브러리와 글꼴 데이터
   icons/           웹 앱 아이콘
   manifest.json    웹 매니페스트
 

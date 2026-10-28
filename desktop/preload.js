@@ -58,7 +58,6 @@ window.addEventListener('DOMContentLoaded', () => {
   const style = document.createElement('style');
   style.textContent = `html,body,body.widget-bg{background:transparent!important}
     .stage.widget-frame{inset:7px;overflow:hidden}
-    #nav{display:none}
     body.widget-fg .face,body.widget-fg .face *{color:var(--widget-fg)!important}
     body.widget-bg .face{background:var(--widget-bg)!important}`;
   document.head.append(style);
