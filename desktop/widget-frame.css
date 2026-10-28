@@ -1,0 +1,11 @@
+/* Shared Windows silhouette: identical insets, radius, and rim on every face. */
+.widget-frame {
+  position: fixed;
+  inset: 7px;
+  box-sizing: border-box;
+  border-radius: min(5vw, 18vh);
+  border: clamp(4px, 1.3vw, 8px) solid var(--widget-border-color, #438b69);
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 3px 6px #102c2024;
+}

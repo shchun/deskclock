@@ -300,7 +300,7 @@
     <div class="risk" style="border-left-color:var(--lime)"><b style="color:var(--lime)">localStorage 인덱스 호환 [해소]:</b> <span><code class="inline">deskclock.face</code>는 FACES 배열 <b>인덱스</b>를 저장한다. → 5단계에서 <b>id 기반 저장으로 전환</b>(숫자값 폴백 포함)하기로 확정. 향후 B/C의 순서 변경에도 안전.</span></div>
     <div class="risk"><b>flip/goo 특수 렌더:</b> <span>face6(animationend 구동)·face11(블롭 nth-child 애니메이션)은 단순 textContent 모델에 안 맞음 → render 인터페이스가 이 둘을 1급으로 수용해야 함.</span></div>
     <div class="risk"><b>폰트 로드 타이밍:</b> <span>템플릿화(B)에서 DOM 생성이 늦어지면 <code class="inline">document.fonts.ready</code> 기반 fit 재계산 순서가 어긋날 수 있음.</span></div>
-    <div class="risk"><b>스코프 경계:</b> <span>sonar PoC(우측하단 SONAR 링크·하단 sonar script)는 "검증 후 삭제" 표시된 임시 코드. 이번 리팩터링 범위에 <b>포함하지 않음</b> — 별도로 처리.</span></div>
+    <div class="risk"><b>정리 완료:</b> <span>임시 감지 테스트 화면, 진입 링크, 백그라운드 오디오 처리 및 관련 권한을 앱 전체에서 제거함.</span></div>
   </section>
 
   <!-- ============ 7. 확정된 결정 ============ -->

@@ -19,7 +19,7 @@ deskclock/
 │   └── fonts/                  # 4 WOFF2 fonts (all embedded for offline use)
 │       ├── jost-var.woff2      # Jost variable (weights 200-500) — face1 Minimal
 │       ├── archivo-var.woff2   # Archivo variable (weights 500-700) — face2 Flip
-│       ├── orbitron-var.woff2  # Orbitron variable (weights 400-700) — face4 Neon
+│       ├── orbitron-var.woff2  # Orbitron variable (weights 400-700) — face8 Neon
 │       └── anton-400.woff2     # Anton 400 — face3 Typography
 ├── android/                    # Capacitor-generated Android project (Gradle)
 │   └── app/src/main/
@@ -79,7 +79,7 @@ Icon design: minimal clock face at 10:10 position, white circle/hands, amber cen
 
 ### Web layer (`app/index.html` — the entire app)
 
-The file is ~1090 lines structured as: `<style>` block (CSS for all 10 faces) → `<body>` markup (10 face sections + nav) → `<script>` IIFE (clock logic) → a second `<script>` (sonar presence-dimming, background). No framework, no modules, no build step.
+The file contains styles and markup for the clock faces, the main clock IIFE, and the fold-only 3D module. Microphone capture, ultrasonic detection, and automatic presence dimming have been removed. The web layer uses no framework or build step.
 
 **`FACES` array** is the source of truth and is **data-driven**: each entry is `{ id, name, theme, fit, render }`, where `render(parts, refs)` updates that face and `fit` holds its scaling config (see below). At init each face's update nodes are auto-collected from `[data-bind]` attributes into `f.r` — there are no hand-written per-element `const` refs.
 
@@ -87,12 +87,10 @@ The file is ~1090 lines structured as: `<style>` block (CSS for all 10 faces) �
 |--------|-----------------|----------|-------|
 | face1  | Brutal Minimal  | Archivo  | Light — vivid yellow (#FFED47), hard offset shadows |
 | face3  | Brutal Type     | Anton    | Light — hot-pink offset poster |
-| face4  | Brutal Electric | Orbitron | Dark — navy grid, lime/blue blocks |
 | face5  | Minimal         | Jost     | Light — warm paper (#ECE9E1) |
 | face6  | Retro Flip      | Archivo  | Dark — mechanical split-flap animation |
 | face7  | Typography      | Anton    | Light — large editorial poster |
 | face8  | Neon            | Orbitron | Dark — cyan/magenta glow shadows |
-| face9  | Liquid Glass    | Jost     | Dark — frosted glass + refracting blobs |
 | face10 | Terminal        | monospace| Dark — green CRT, blinking cursor |
 | face11 | Liquid Goo      | Jost     | Dark — SVG metaball blobs (violet) |
 

@@ -1,9 +1,7 @@
 package com.precipi.deskclock;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,8 +12,6 @@ import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -24,7 +20,6 @@ import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
 
-    private static final int REQ_MIC = 1001;
 
     // 폴드 경첩 각도 센서 — 존재 여부 자체가 '폴드 단말' 신호. 각도(0=닫힘~180=평평)를 웹에 전달.
     private SensorManager sensorManager;
@@ -44,17 +39,7 @@ public class MainActivity extends BridgeActivity {
         getWindow().getDecorView().setBackgroundColor(Color.BLACK);
         if (getBridge() != null && getBridge().getWebView() != null) {
             getBridge().getWebView().setBackgroundColor(Color.BLACK);
-            // 웹(소나 감지)에서 화면 밝기를 제어하도록 JS 브리지 노출: window.DeskClock.setBrightness("0.01")
-            getBridge().getWebView().addJavascriptInterface(new BrightnessBridge(), "DeskClock");
-            // 초음파 소나를 사용자 터치 없이 로드 직후 자동 가동하기 위해
-            // 미디어(AudioContext/오디오) 자동재생의 제스처 요구를 해제한다.
-            getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
-        }
-        // 초음파 소나용 마이크 권한을 시작 시 요청 — 허용돼야 WebView getUserMedia가 동작
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                    this, new String[]{ Manifest.permission.RECORD_AUDIO }, REQ_MIC);
+            getBridge().getWebView().addJavascriptInterface(new DeviceBridge(), "DeskClock");
         }
         hideSystemUI();
     }
@@ -98,22 +83,8 @@ public class MainActivity extends BridgeActivity {
         if (hasFocus) hideSystemUI();
     }
 
-    // 웹에서 호출하는 화면 밝기 제어 브리지.
-    // v < 0 이면 시스템 기본(원래대로), 0~1 이면 해당 밝기로 강제(최소~최대).
-    private class BrightnessBridge {
-        @JavascriptInterface
-        public void setBrightness(String value) {
-            final float v;
-            try { v = Float.parseFloat(value); } catch (Exception e) { return; }
-            runOnUiThread(() -> {
-                WindowManager.LayoutParams lp = getWindow().getAttributes();
-                lp.screenBrightness = v < 0
-                        ? WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
-                        : Math.max(0.004f, Math.min(1f, v));
-                getWindow().setAttributes(lp);
-            });
-        }
-
+    // 폴드 디스플레이 정보만 웹에 전달한다.
+    private class DeviceBridge {
         // 폴드 단말 여부 — 경첩 각도 센서 존재로 판단(웹에서 FACE 12 노출 결정).
         @JavascriptInterface
         public boolean isFoldable() {

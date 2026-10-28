@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Desk Clock 위젯</title><link rel="stylesheet" href="widget-frame.css">
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;user-select:none}
+body{padding:7px;-webkit-app-region:drag}
+#panel{--widget-border-color:rgb(var(--rim-rgb,67 139 105) / var(--rim-alpha,1));display:flex;align-items:center;justify-content:center;background:rgb(var(--panel-rgb,214 244 227) / var(--panel-alpha,.96))}
+svg{width:88%;height:80%;color:var(--digit-color,#10291f);overflow:visible}
+.segment{fill:currentColor;opacity:0}.segment.on,.colon{opacity:1}.colon{fill:currentColor}
+@media(prefers-reduced-motion:no-preference){.segment{transition:opacity .08s}}
+</style></head><body><div id="panel" class="widget-frame"><svg id="digits" viewBox="0 0 600 120" role="img" aria-label="현재 시간"></svg></div><script src="widget.js"></script></body></html>
