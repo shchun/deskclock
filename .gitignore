@@ -25,4 +25,5 @@ Thumbs.db
 # Keystore (혹시 나중에 생기면)
 *.jks
 *.keystore
+!.github/ci/debug.keystore
 keystore.properties
