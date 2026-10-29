@@ -2,6 +2,8 @@
 
 여러 디자인으로 시간을 표시하는 오프라인 시계 앱입니다. **Windows에서는 데스크톱 위젯**, **Android에서는 전체화면 탁상시계**로 사용합니다. 글꼴과 화면 리소스를 앱에 포함해 네트워크 연결 없이 동작합니다.
 
+![Brutal Type 시계 화면](screenshots/brutal-type.png)
+
 ## 시계 페이스
 
 | 페이스 | 특징 | 지원 |
@@ -143,7 +145,7 @@ desktop/
 scripts/           릴리즈 버전 처리와 검증
 .github/workflows/ APK·EXE 자동 빌드 및 릴리즈 워크플로
 android/           Capacitor 네이티브 Android 프로젝트
-screenshots/       초기 Android 디자인 캡처
+screenshots/       현재 Brutal Type 화면과 초기 Android 디자인 캡처
 docs/              디자인 참고 자료와 개발 기록
 ```
 
