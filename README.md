@@ -50,7 +50,7 @@ Windows와 Android 모두 **민트 LCD를 포함한 8종**을 사용할 수 있�
 ## 개발 환경
 
 - **Node.js 24**와 npm
-- Windows 위젯 실행·EXE 빌드: **Windows**
+- Windows 위젯 실행·EXE 빌드: **Windows**, **Rust stable**, **Visual Studio C++ Build Tools**, **WebView2**
 - Android APK 빌드: **JDK 21**, **Android SDK 36**
 
 ### 의존성 설치
@@ -66,7 +66,7 @@ npm start
 npm run build:windows
 ```
 
-`release/`에 Windows x64 포터블 EXE가 생성됩니다. 자동 실행을 설정한 뒤에는 EXE 위치를 유지하세요. 개발 실행에서 자동 실행을 켜면 현재 Electron 실행 파일과 프로젝트 경로를 사용합니다.
+Windows 앱은 Tauri 2로 실행합니다. `src-tauri/target/release/deskclock.exe`에 단독 실행 파일, `src-tauri/target/release/bundle/nsis/`에 설치 프로그램이 생성됩니다. 단독 실행 파일에서 자동 실행을 설정한 뒤에는 EXE 위치를 유지하세요. WebView2가 필요하며, 설치 프로그램은 없는 경우 최초 설치 시 인터넷으로 내려받습니다. 설치 후 시계는 오프라인으로 동작합니다. 런타임까지 포함하는 완전 오프라인 설치 파일은 기본 빌드에 포함하지 않습니다. 기존 Electron의 `%APPDATA%/deskclock/widget.json` 설정은 최초 실행 때 자동으로 가져옵니다. 새 설정 위치는 `%APPDATA%/com.deskclock.widget/widget.json`입니다.
 
 ### Android APK 빌드
 
@@ -92,7 +92,7 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 
 ## APK·EXE 자동 빌드 및 릴리즈
 
-`.github/workflows/release.yml`은 PR에서 Android APK와 Windows x64 포터블 EXE를 빌드해 검증합니다. 이때는 릴리즈를 발행하지 않으며 빌드 결과를 Actions의 Artifacts에서 30일간 받을 수 있습니다.
+`.github/workflows/release.yml`은 PR에서 Android APK, Windows x64 단독 실행 EXE와 설치 프로그램을 빌드해 검증합니다. 이때는 릴리즈를 발행하지 않으며 빌드 결과를 Actions의 Artifacts에서 30일간 받을 수 있습니다.
 
 다음 중 한 방법으로 버전을 배포할 수 있습니다.
 
@@ -133,8 +133,7 @@ app/
   manifest.json    웹 매니페스트
 
 desktop/
-  main.js          Windows 창·트레이·메뉴·설정 저장
-  preload.js       방향키·드래그와 데스크톱 화면 연결
+  bridge.js        방향키·드래그와 Tauri 명령 연결
   faces.js         Windows 페이스 목록과 테두리 색상
   widget.html      민트 LCD 화면
   widget.js        민트 LCD 숫자 갱신
@@ -142,7 +141,12 @@ desktop/
   settings.html    위젯 설정 화면
   settings.js      설정 조작과 저장
 
-scripts/           릴리즈 버전 처리와 검증
+src-tauri/
+  src/main.rs      Windows 창·트레이·메뉴·설정 저장
+  tauri.conf.json  Tauri 보안 및 설치 프로그램 설정
+  Cargo.toml       Rust 의존성과 빌드 설정
+
+scripts/           데스크톱 자산 준비, 릴리즈 버전 처리와 검증
 .github/workflows/ APK·EXE 자동 빌드 및 릴리즈 워크플로
 android/           Capacitor 네이티브 Android 프로젝트
 screenshots/       현재 Brutal Type 화면과 초기 Android 디자인 캡처

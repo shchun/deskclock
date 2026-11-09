@@ -19,6 +19,9 @@ test('tag version updates package and lockfile together without changing depende
     const lock = { version: '1.0.0', packages: { '': { version: '1.0.0' }, dependency: { version: '4.0.0' } } };
     fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify(pkg));
     fs.writeFileSync(path.join(root, 'package-lock.json'), JSON.stringify(lock));
+    fs.mkdirSync(path.join(root, 'src-tauri'));
+    fs.writeFileSync(path.join(root, 'src-tauri/Cargo.toml'), '[package]\nname = "deskclock"\nversion = "1.0.0"\n');
+    fs.writeFileSync(path.join(root, 'src-tauri/Cargo.lock'), '[[package]]\nname = "dependency"\nversion = "4.0.0"\n\n[[package]]\nname = "deskclock"\nversion = "1.0.0"\n');
     applyVersion(root, '2.3.4');
     const updated = JSON.parse(fs.readFileSync(path.join(root, 'package.json')));
     const updatedLock = JSON.parse(fs.readFileSync(path.join(root, 'package-lock.json')));
@@ -27,7 +30,13 @@ test('tag version updates package and lockfile together without changing depende
     assert.equal(updatedLock.version, '2.3.4');
     assert.equal(updatedLock.packages[''].version, '2.3.4');
     assert.equal(updatedLock.packages.dependency.version, '4.0.0');
+    assert.match(fs.readFileSync(path.join(root, 'src-tauri/Cargo.toml'), 'utf8'), /version = "2.3.4"/);
+    const cargoLock = fs.readFileSync(path.join(root, 'src-tauri/Cargo.lock'), 'utf8');
+    assert.match(cargoLock, /name = "deskclock"\nversion = "2.3.4"/);
+    assert.match(cargoLock, /name = "dependency"\nversion = "4.0.0"/);
   } finally {
+    for (const name of ['Cargo.toml', 'Cargo.lock']) fs.unlinkSync(path.join(root, 'src-tauri', name));
+    fs.rmdirSync(path.join(root, 'src-tauri'));
     for (const name of ['package.json', 'package-lock.json']) fs.unlinkSync(path.join(root, name));
     fs.rmdirSync(root);
   }

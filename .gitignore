@@ -27,3 +27,8 @@ Thumbs.db
 *.keystore
 !.github/ci/debug.keystore
 keystore.properties
+
+# Tauri
+dist/
+src-tauri/target/
+src-tauri/gen/schemas/

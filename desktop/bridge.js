@@ -1,4 +1,13 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { invoke } = window.__TAURI__.core;
+const ipcRenderer = {
+  invoke: (name, patch) => invoke(name === 'widget:get' ? 'get_state' : 'update_state', { patch }),
+  on: (_name, callback) => window.addEventListener('widget:changed', event => callback(null, event.detail)),
+  send: (name, value) => {
+    const commands = { 'widget:settings': 'open_settings', 'widget:cycle': 'cycle_face', 'widget:face-changed': 'face_changed' };
+    if (commands[name]) invoke(commands[name], { value }).catch(console.error);
+  }
+};
+const contextBridge = { exposeInMainWorld: (key, value) => { window[key] = value; } };
 contextBridge.exposeInMainWorld('desktopWidget', {
   get: () => ipcRenderer.invoke('widget:get'),
   update: patch => ipcRenderer.invoke('widget:update', patch),
@@ -9,37 +18,35 @@ window.addEventListener('DOMContentLoaded', () => {
   const isOriginal = location.pathname.endsWith('/index.html');
   const isWidget = location.pathname.endsWith('/widget.html');
   if (isOriginal || isWidget) {
-    // Native app-region:drag swallows mouse events on some Windows versions.
-    // Capture only left-button drags so normal right-click context menus still work.
     let pointer = null;
     const root = document.documentElement;
-    const interactive = target => !!target.closest?.('button,a,input,select,textarea,[role="button"]');
-    const finish = () => {
-      if (pointer === null) return;
-      const id = pointer; pointer = null;
-      ipcRenderer.send('widget:drag-end');
-      if (root.hasPointerCapture(id)) root.releasePointerCapture(id);
-    };
+    const drag = (phase, event) => invoke('drag_window', { phase, x: event.screenX, y: event.screenY }).catch(console.error);
     window.addEventListener('pointerdown', event => {
-      if (event.button !== 0 || interactive(event.target)) return;
+      if (event.button !== 0 || event.target.closest?.('button,a,input,select,textarea,[role="button"]')) return;
       event.preventDefault();
       pointer = event.pointerId;
       root.setPointerCapture(pointer);
-      ipcRenderer.send('widget:drag-start', { x: event.screenX, y: event.screenY });
+      drag('start', event);
     }, true);
     window.addEventListener('pointermove', event => {
-      if (event.pointerId !== pointer) return;
-      if (!(event.buttons & 1)) { finish(); return; }
-      ipcRenderer.send('widget:drag-move');
+      if (event.pointerId === pointer) drag('move', event);
     }, true);
-    window.addEventListener('pointerup', event => { if (event.pointerId === pointer && event.button === 0) finish(); }, true);
+    const finish = event => {
+      if (event.pointerId !== pointer) return;
+      drag('end', event);
+      const id = pointer; pointer = null;
+      if (root.hasPointerCapture(id)) root.releasePointerCapture(id);
+    };
+    window.addEventListener('pointerup', finish, true);
     window.addEventListener('pointercancel', finish, true);
-    window.addEventListener('lostpointercapture', finish, true);
-    window.addEventListener('blur', finish);
     window.addEventListener('click', event => {
-      if (interactive(event.target)) return;
+      if (event.target.closest?.('button,a,input,select,textarea,[role="button"]')) return;
       event.preventDefault(); event.stopImmediatePropagation();
     }, true);
+    window.addEventListener('contextmenu', event => { event.preventDefault(); invoke('show_menu').catch(console.error); });
+    const opacity = state => { document.body.style.opacity = state.opacity; };
+    window.desktopWidget.onChange(opacity);
+    window.desktopWidget.get().then(opacity);
   }
   if (isOriginal || isWidget) window.addEventListener('keydown', event => {
     if (event.altKey || event.ctrlKey || event.metaKey || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
@@ -74,3 +81,4 @@ window.addEventListener('DOMContentLoaded', () => {
   // The frame stylesheet arrives after the web clock's initial fit.
   frameStyle.addEventListener('load', () => window.dispatchEvent(new Event('resize')));
 });
+
