@@ -81,4 +81,3 @@ window.addEventListener('DOMContentLoaded', () => {
   // The frame stylesheet arrives after the web clock's initial fit.
   frameStyle.addEventListener('load', () => window.dispatchEvent(new Event('resize')));
 });
-

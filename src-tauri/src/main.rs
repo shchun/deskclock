@@ -272,6 +272,11 @@ async fn open_settings(app: tauri::AppHandle) -> Result<(), String> {
         w.set_focus().map_err(|e| e.to_string())?;
     } else {
         builder(&app, "settings", "desktop/settings.html")
+            .parent(
+                &app.get_webview_window("clock")
+                    .ok_or("Clock window is unavailable")?,
+            )
+            .map_err(|e| e.to_string())?
             .always_on_top(true)
             .title("Desk Clock 설정")
             .inner_size(460., 760.)
