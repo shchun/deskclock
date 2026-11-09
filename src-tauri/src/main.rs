@@ -428,6 +428,10 @@ fn main() {
                 .inner_size(360., 141.)
                 .decorations(false)
                 .transparent(true)
+                .background_color(tauri::window::Color(0, 0, 0, 0))
+                .on_page_load(|window, _| {
+                    let _ = window.set_background_color(Some(tauri::window::Color(0, 0, 0, 0)));
+                })
                 .shadow(false)
                 .resizable(false)
                 .skip_taskbar(true)
