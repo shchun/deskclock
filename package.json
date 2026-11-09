@@ -1,40 +1,20 @@
 {
   "name": "deskclock",
   "version": "1.0.0",
-  "description": "Offline desk clock for Windows (Electron) and Android (Capacitor)",
+  "description": "Offline desk clock for Windows (Tauri) and Android (Capacitor)",
   "private": true,
   "type": "commonjs",
-  "main": "desktop/main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "tauri dev",
     "test": "node --test desktop/*.test.js scripts/*.test.cjs",
-    "build:windows": "electron-builder --win portable --x64",
-    "check:desktop": "node --check desktop/main.js && node --check desktop/preload.js && node --check desktop/settings.js && node --check desktop/widget.js"
-  },
-  "build": {
-    "appId": "com.deskclock.widget",
-    "productName": "Desk Clock",
-    "files": [
-      "desktop/**/*",
-      "!desktop/*.test.js",
-      "app/**/*",
-      "package.json"
-    ],
-    "directories": {
-      "output": "release"
-    },
-    "portable": { "useZip": true },
-    "win": {
-      "target": "portable",
-      "signAndEditExecutable": false
-    }
+    "build:windows": "tauri build",
+    "check:desktop": "node --check desktop/bridge.js && node --check desktop/settings.js && node --check desktop/widget.js && node scripts/prepare-desktop.cjs"
   },
   "devDependencies": {
     "@capacitor/android": "^8.3.4",
     "@capacitor/cli": "^8.3.4",
     "@capacitor/core": "^8.3.4",
     "@capacitor/assets": "^3.0.5",
-    "electron": "^45.0.0",
-    "electron-builder": "^26.18.0"
+    "@tauri-apps/cli": "^2.0.0"
   }
 }

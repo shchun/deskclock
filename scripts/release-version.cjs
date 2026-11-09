@@ -20,6 +20,16 @@ function applyVersion(root, version) {
   pkg.version = lock.version = lock.packages[''].version = version;
   fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2) + '\n');
   fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
+  const cargoPath = path.join(root, 'src-tauri', 'Cargo.toml');
+  const cargoLockPath = path.join(root, 'src-tauri', 'Cargo.lock');
+  if (fs.existsSync(cargoPath)) {
+    const cargo = fs.readFileSync(cargoPath, 'utf8');
+    fs.writeFileSync(cargoPath, cargo.replace(/^version = "[^"]+"/m, `version = "${version}"`));
+  }
+  if (fs.existsSync(cargoLockPath)) {
+    const cargoLock = fs.readFileSync(cargoLockPath, 'utf8');
+    fs.writeFileSync(cargoLockPath, cargoLock.replace(/(\[\[package\]\]\r?\nname = "deskclock"\r?\n)version = "[^"]+"/, `$1version = "${version}"`));
+  }
 }
 
 if (require.main === module) {

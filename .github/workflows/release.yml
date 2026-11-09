@@ -105,17 +105,26 @@ jobs:
           mkdir -p release-assets
           cp android/app/build/outputs/apk/debug/app-debug.apk "release-assets/DeskClock-${DESKCLOCK_VERSION}-android-debug.apk"
 
-      - name: Build Windows portable EXE
+      - name: Install Rust toolchain
         if: matrix.platform == 'windows'
-        run: npm run build:windows -- --publish never
+        run: rustup toolchain install stable --profile minimal --no-self-update
+      - name: Test Windows backend
+        if: matrix.platform == 'windows'
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+      - name: Build Windows executable and installer
+        if: matrix.platform == 'windows'
+        run: npm run build:windows -- -- --locked
       - name: Collect Windows package
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
-          $packages = @(Get-ChildItem -LiteralPath release -Filter '*.exe' -File)
+          $packages = @(Get-Item -LiteralPath src-tauri/target/release/deskclock.exe)
           if ($packages.Count -ne 1) { throw 'Expected exactly one Windows EXE' }
           New-Item -ItemType Directory -Force release-assets | Out-Null
           Copy-Item -LiteralPath $packages[0].FullName -Destination "release-assets/DeskClock-$env:DESKCLOCK_VERSION-windows-x64.exe"
+          $installers = @(Get-ChildItem -LiteralPath src-tauri/target/release/bundle/nsis -Filter '*-setup.exe' -File)
+          if ($installers.Count -ne 1) { throw 'Expected exactly one Windows installer' }
+          Copy-Item -LiteralPath $installers[0].FullName -Destination "release-assets/DeskClock-$env:DESKCLOCK_VERSION-windows-x64-setup.exe"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -147,6 +156,7 @@ jobs:
         run: |
           test -s "release-assets/DeskClock-${DESKCLOCK_VERSION}-android-debug.apk"
           test -s "release-assets/DeskClock-${DESKCLOCK_VERSION}-windows-x64.exe"
+          test -s "release-assets/DeskClock-${DESKCLOCK_VERSION}-windows-x64-setup.exe"
           cd release-assets
           sha256sum *.apk *.exe > SHA256SUMS.txt
       - name: Create or update GitHub Release
