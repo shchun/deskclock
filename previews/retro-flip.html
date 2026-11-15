@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Retro Flip 미리보기</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; min-height: 100vh; display: grid; place-items: center;
+      background: #eae5db; color: #231e18; font: 16px/1.5 system-ui, sans-serif; }
+    main { width: min(100%, 480px); }
+    h1 { font-size: 24px; margin: 0 0 14px; }
+    .options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    button { border: 1px solid #817669; border-radius: 6px; padding: 8px 12px;
+      background: #f7f4ed; color: inherit; font: inherit; cursor: pointer; }
+    button[aria-pressed="true"] { background: #302923; color: #fffaf0; }
+    iframe { display: block; width: 100%; aspect-ratio: 480 / 187; border: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Retro Flip 미리보기</h1>
+    <div class="options" id="layouts" role="group" aria-label="카드 배경과 조명">
+      <button type="button" data-layout="classic" aria-pressed="false">기존 카드</button>
+      <button type="button" data-layout="lit" aria-pressed="true">검은 카드 · 전구빛</button>
+    </div>
+    <div class="options" role="group" aria-label="시·분 숫자 글꼴">
+      <button id="current" type="button" aria-pressed="true">현재 · Condensed SemiBold</button>
+      <button id="candidate" type="button" aria-pressed="false">후보 · Semi Condensed Bold</button>
+    </div>
+    <iframe id="clock" title="Retro Flip 시계 미리보기" src="../app/index.html"></iframe>
+  </main>
+  <script>
+    const clock = document.getElementById('clock');
+    const current = document.getElementById('current');
+    const candidate = document.getElementById('candidate');
+    const layoutButtons = [...document.querySelectorAll('#layouts button')];
+    let showCandidate = false;
+    let layout = 'lit';
+
+    function selectLayout(selected) {
+      layout = selected;
+      clock.contentDocument.documentElement.classList.toggle('preview-classic', layout === 'classic');
+      for (const button of layoutButtons) {
+        button.setAttribute('aria-pressed', String(button.dataset.layout === layout));
+      }
+      clock.contentWindow.dispatchEvent(new Event('resize'));
+    }
+
+    function selectFont(selected) {
+      showCandidate = selected;
+      clock.contentDocument.documentElement.classList.toggle('preview-candidate', selected);
+      current.setAttribute('aria-pressed', String(!selected));
+      candidate.setAttribute('aria-pressed', String(selected));
+    }
+
+    clock.addEventListener('load', () => {
+      const doc = clock.contentDocument;
+      const frame = doc.createElement('link');
+      frame.rel = 'stylesheet';
+      frame.href = '../desktop/widget-frame.css';
+      doc.head.append(frame);
+      doc.getElementById('stage').classList.add('widget-frame');
+      const style = doc.createElement('style');
+      style.textContent = `
+        @font-face { font-family: 'Barlow Semi Condensed'; font-weight: 700;
+          src: url('../previews/barlow-semi-condensed-700.ttf') format('truetype'); }
+        html, body { background: transparent !important; }
+        .stage.widget-frame { inset: 7px; --widget-border-color: #b7833c; }
+        .preview-candidate .f6-time .flip-card { font-family: 'Barlow Semi Condensed', 'Barlow Condensed', sans-serif; font-weight: 700; }
+
+        .preview-classic #face6 {
+          background: radial-gradient(120% 90% at 50% 0%, #202024 0%, #141416 55%, #0e0e10 100%);
+        }
+        .preview-classic #face6 .flip-card .half { color: #f3f1ea; }
+        .preview-classic #face6 .flip-card :is(.top, .top-flip) { background: #2b2b30; }
+        .preview-classic #face6 .flip-card :is(.bottom, .bottom-flip) { background: #202024; }
+        .preview-classic #face6 .f6-time :is(.top, .top-flip) { background: #494950; }
+        .preview-classic #face6 .f6-time :is(.bottom, .bottom-flip) { background: #3d3d44; }
+        .preview-classic #face6 .f6-ampm .half { color: #f3b14e; }
+      `;
+      doc.head.append(style);
+      doc.dispatchEvent(new CustomEvent('deskclock:select-face', { detail: 'face6' }));
+      doc.addEventListener('deskclock:face-changed', event => {
+        if (event.detail !== 'face6') doc.dispatchEvent(new CustomEvent('deskclock:select-face', { detail: 'face6' }));
+      });
+      frame.addEventListener('load', () => clock.contentWindow.dispatchEvent(new Event('resize')));
+      selectFont(showCandidate);
+      selectLayout(layout);
+    });
+
+    current.addEventListener('click', () => selectFont(false));
+    candidate.addEventListener('click', () => selectFont(true));
+    for (const button of layoutButtons) {
+      button.addEventListener('click', () => selectLayout(button.dataset.layout));
+    }
+    // Let the same shortcuts work when focus is on the comparison controls.
+    document.addEventListener('keydown', event => {
+      if (!['KeyT', 'KeyS'].includes(event.code) || event.repeat || event.isComposing ||
+        event.ctrlKey || event.altKey || event.metaKey || event.defaultPrevented) return;
+      const forwarded = new KeyboardEvent('keydown', { code: event.code, cancelable: true });
+      if (!clock.contentDocument.dispatchEvent(forwarded)) event.preventDefault();
+    });
+  </script>
+</body>
+</html>

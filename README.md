@@ -11,7 +11,7 @@
 | Mint LCD | 민트색 패널과 7세그먼트 숫자 | Windows · Android |
 | Brutal Type | 핑크 포인트와 굵은 타이포그래피 | Windows · Android |
 | Minimal | 따뜻한 페이퍼 톤과 얇은 숫자 | Windows · Android |
-| Retro Flip | 중앙에 배치한 시·분 플립 카드, 하단 날짜·AM/PM, 초 표시 없음 | Windows · Android |
+| Retro Flip | 전구빛이 비치는 시·분 플립 카드, 오른쪽 AM/PM, 하단 날짜, 선택형 기계식 플립 소리 | Windows · Android |
 | Typography | 큰 숫자와 왼쪽 중앙의 두 줄 날짜, 버밀리언 포인트 | Windows · Android |
 | Neon | 시안·마젠타 빛 번짐 효과 | Windows · Android |
 | Terminal | 초록색 숫자와 터미널 화면 스타일 | Windows · Android |

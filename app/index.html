@@ -8,6 +8,8 @@
 <title>Desk Clock</title>
 <style>
   /* 오프라인 사용을 위해 폰트를 앱에 내장 (Jost/Archivo/Orbitron은 가변폰트) */
+  @font-face{ font-family:'Barlow Condensed'; font-style:normal; font-weight:600;
+    src:url('fonts/barlow-condensed-600.ttf') format('truetype'); font-display:swap; }
   @font-face{ font-family:'Jost'; font-style:normal; font-weight:200 500;
     src:url('fonts/jost-var.woff2') format('woff2'); font-display:swap; }
   @font-face{ font-family:'Archivo'; font-style:normal; font-weight:500 700;
@@ -62,7 +64,6 @@
   /* ======================================================= */
   /* FLIP CARD (공유 인프라 — 클래식 Retro Flip / face6 에서 사용) */
   /* ======================================================= */
-  .flip-group{ display:flex; gap:1.1vmin; }
   @keyframes f2blink{ 50%{ opacity:.25; } }
 
   .flip-card{
@@ -96,8 +97,8 @@
   .flip-card .bottom-flip{ bottom:0; transform-origin:top; z-index:3;
     background:#ededed;
     transform:rotateX(90deg); backface-visibility:hidden; }
-  .flip-card.flipping .top-flip{ animation:foldTop .3s ease-in forwards; }
-  .flip-card.flipping .bottom-flip{ animation:unfoldBottom .3s ease-out .3s forwards; }
+  .flip-card.flipping .top-flip{ animation:foldTop .14s ease-in var(--flip-delay,0s) forwards; }
+  .flip-card.flipping .bottom-flip{ animation:unfoldBottom .14s ease-out calc(.14s + var(--flip-delay,0s)) forwards; }
   @keyframes foldTop{ from{ transform:rotateX(0); } to{ transform:rotateX(-90deg); } }
   @keyframes unfoldBottom{ from{ transform:rotateX(90deg); } to{ transform:rotateX(0deg); } }
 
@@ -168,10 +169,40 @@
   #face6 .flip-card .bottom{ border-radius:0 0 1.4vmin 1.4vmin; background:#202024; }
   #face6 .flip-card .top-flip{ border-radius:1.4vmin 1.4vmin 0 0; background:#2b2b30; border-bottom:1px solid rgba(0,0,0,.5); }
   #face6 .flip-card .bottom-flip{ border-radius:0 0 1.4vmin 1.4vmin; background:#202024; }
+  .f6-time .flip-card{ width:22vmin; font-family:'Barlow Condensed','Archivo',sans-serif; font-weight:600; }
+  .f6-time .flip-card .num{ transform:translateY(-.8vmin); }
+  #f6-h{ --flip-delay:.08s; }
+  #f6-ampm{ --flip-delay:.08s; }
+  #face6 .f6-time .top, #face6 .f6-time .top-flip{ background:#494950; }
+  #face6 .f6-time .bottom, #face6 .f6-time .bottom-flip{ background:#3d3d44; }
   .f6-meta{ grid-row:3; align-self:start; display:flex; align-items:center; gap:2.4vmin; }
-  .f6-ampm{ font-family:'Archivo',sans-serif; font-weight:600; font-size:2.4vmin; letter-spacing:.25em;
-    padding:.9vmin 1.8vmin; border-radius:.8vmin; background:#26262b; color:#f3b14e; box-shadow:0 .6vmin 1.4vmin rgba(0,0,0,.4); }
-  .f6-date{ font-weight:400; font-size:2.2vmin; letter-spacing:.4em; white-space:nowrap; color:#9a968c; text-transform:uppercase; }
+  .f6-ampm .flip-card{ width:12vmin; height:8vmin; font-size:4.8vmin; font-weight:700; }
+  #face6 .f6-ampm .half{ color:#f3b14e; }
+  .f6-ampm .flip-card .num{ height:8vmin; line-height:8vmin; transform:none; }
+  .f6-date{ font-weight:400; font-size:3.5vmin; letter-spacing:.15em; white-space:nowrap; color:#d3cec2; text-transform:uppercase; }
+  #face6 {
+    background:
+      radial-gradient(ellipse at 20% 46%, #ffae5940, transparent 42%),
+      radial-gradient(ellipse at 80% 46%, #ffae592b, transparent 38%),
+      radial-gradient(ellipse at 50% 0%, #202024, #0e0e10);
+  }
+  #face6 .flip-card {
+    --lamp-edge: 0%;
+    --lamp-color: #ffc17a64;
+  }
+  #face6 #f6-m .flip-card,
+  #face6 #f6-ampm .flip-card {
+    --lamp-edge: 100%;
+    --lamp-color: #ffc17a52;
+  }
+  #face6 .flip-card :is(.top, .top-flip) {
+    background: radial-gradient(ellipse at var(--lamp-edge) 62%, var(--lamp-color), transparent 82%), #101011;
+    border-bottom-color: #090909;
+  }
+  #face6 .flip-card :is(.bottom, .bottom-flip) {
+    background: radial-gradient(ellipse at var(--lamp-edge) 20%, var(--lamp-color), transparent 82%), #080809;
+  }
+  #face6 .f6-time .half { color: #f0e8d9; }
 
   /* ======================================================= */
   /* FACE 7 — TYPOGRAPHY (classic)                           */
@@ -489,13 +520,13 @@
     <!-- FACE 6 — FLIP (classic) -->
     <section class="face" id="face6">
       <div class="f6-wrap">
-        <div class="f6-row">
-          <div class="flip-group" id="f6-h"></div>
+        <div class="f6-row" role="img">
+          <div class="f6-time" id="f6-h"></div>
           <div class="f6-colon blink"><i></i><i></i></div>
-          <div class="flip-group" id="f6-m"></div>
+          <div class="f6-time" id="f6-m"></div>
+          <div class="f6-ampm" id="f6-ampm"></div>
         </div>
         <div class="f6-meta">
-          <div class="f6-ampm" data-bind="ampm">PM</div>
           <div class="f6-date" data-bind="date">SUN · JUN 14</div>
         </div>
       </div>
@@ -587,7 +618,7 @@
     { id:'face5', name:'Minimal',         theme:'light', fit:{sel:'.f5-wrap', aw:.92, ah:.92, max:4},
       render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.sec,p.ss); set(r.ampm,p.ampm); set(r.date,p.dlongDot); } },
     { id:'face6', name:'Retro Flip',      theme:'dark',  fit:{sel:'.f6-wrap', aw:.92, ah:.92, max:4},
-      render(p,r){ set(r.ampm,p.ampm); set(r.date,p.dshort); renderFlip(); } },
+      render(p,r){ set(r.date,p.dshort); renderFlip(); } },
     { id:'face7', name:'Typography',      theme:'light', fit:{sel:'.f7-time', aw:.9, ah:.6, max:5},
       render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dstack); } },
     { id:'face8', name:'Neon',            theme:'dark',  fit:{sel:'.f8-wrap', aw:.92, ah:.92, max:4},
@@ -626,12 +657,13 @@
 
   function go(i){
     active=(i+FACES.length)%FACES.length;
+    if(preview && FACES[active].id!=='face6') setPreview(false);
     FACES.forEach((f,idx)=>{
       f.el.classList.toggle('active', idx===active);
     });
     localStorage.setItem('deskclock.face', FACES[active].id);
     document.dispatchEvent(new CustomEvent('deskclock:face-changed', { detail: FACES[active].id }));
-    if(FACES[active].id==='face6') renderFlip(false); // set instantly, no animation
+    renderFlip(false);
     fitActive();
     setTimeout(fitActive, 600); // 진입 애니메이션이 끝난 뒤 정확히 다시 맞춤
   }
@@ -670,39 +702,31 @@
   });
 
   /* ---------- flip clock ---------- */
-  function buildFlip(container,count){
-    container.innerHTML='';
-    const cards=[];
-    for(let i=0;i<count;i++){
-      const c=document.createElement('div');
-      c.className='flip-card';
-      c.dataset.value='';
-      c.innerHTML=
-        '<div class="half top"><div class="num"></div></div>'+
-        '<div class="half bottom"><div class="num"></div></div>'+
-        '<div class="half top-flip"><div class="num"></div></div>'+
-        '<div class="half bottom-flip"><div class="num"></div></div>';
-      c.addEventListener('animationend',e=>{
-        if(e.animationName==='unfoldBottom'){
-          c.querySelector('.bottom .num').textContent=c.dataset.value;
-          c.querySelector('.top-flip .num').textContent=c.dataset.value;
-          c.classList.remove('flipping');
-        }
-      });
-      container.appendChild(c);
-      cards.push(c);
-    }
-    return cards;
+  function buildFlip(id){
+    const card=document.createElement('div');
+    card.className='flip-card';
+    card.dataset.value='';
+    card.setAttribute('aria-hidden','true');
+    card.innerHTML=
+      '<div class="half top"><div class="num"></div></div>'+
+      '<div class="half bottom"><div class="num"></div></div>'+
+      '<div class="half top-flip"><div class="num"></div></div>'+
+      '<div class="half bottom-flip"><div class="num"></div></div>';
+    card.addEventListener('animationend',event=>{
+      if(event.animationName==='unfoldBottom') setCard(card,card.dataset.value,false);
+    });
+    document.getElementById(id).appendChild(card);
+    return card;
   }
   function setCard(card,val,animate){
     val=String(val);
-    if(card.dataset.value===val) return;
     if(!animate){
       card.dataset.value=val;
       card.querySelectorAll('.num').forEach(n=>n.textContent=val);
       card.classList.remove('flipping');
       return;
     }
+    if(card.dataset.value===val) return;
     const cur=card.dataset.value;
     card.querySelector('.top .num').textContent=val;
     card.querySelector('.bottom-flip .num').textContent=val;
@@ -711,12 +735,29 @@
     card.dataset.value=val;
     card.classList.remove('flipping'); void card.offsetWidth; card.classList.add('flipping');
   }
-  function setGroup(cards,str,animate){
-    str=String(str);
-    for(let i=0;i<cards.length;i++) setCard(cards[i], str[i], animate);
+  const hourCard=buildFlip('f6-h');
+  const minuteCard=buildFlip('f6-m');
+  const ampmCard=buildFlip('f6-ampm');
+  const flipRow=document.querySelector('.f6-row');
+  const reducedFlipMotion=matchMedia('(prefers-reduced-motion: reduce)');
+  const flipClick=new Audio('flip.wav');
+  const flipHour=new Audio('flip-hour.wav');
+  let soundOn=localStorage.getItem('deskclock.flipSound')==='on';
+  function stopFlipSound(){
+    for(const audio of [flipClick,flipHour]) audio.pause();
   }
-  const hCards6=buildFlip(document.getElementById('f6-h'),2);
-  const mCards6=buildFlip(document.getElementById('f6-m'),2);
+  function playFlip(hourChanged){
+    const audio=hourChanged?flipHour:flipClick;
+    audio.currentTime=0;
+    audio.play().catch(()=>{});
+  }
+  function toggleFlipSound(){
+    soundOn=!soundOn;
+    localStorage.setItem('deskclock.flipSound',soundOn?'on':'off');
+    if(soundOn) playFlip(false);
+    else stopFlipSound();
+  }
+  let lastFlipTime;
 
   /* ---------- ticking ---------- */
   const DAYS=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
@@ -725,21 +766,61 @@
   const MON3=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const pad=n=>String(n).padStart(2,'0');
 
-  let cur={h:'',m:'',s:''};
+  let cur;
+  let preview;
+  let tickTimer;
+
+  function setPreview(enabled){
+    if(enabled){
+      const start=new Date();
+      start.setHours(11,58,40,0);
+      preview={start:start.getTime(), beganAt:performance.now()};
+    } else {
+      preview=undefined;
+      stopFlipSound();
+    }
+    lastFlipTime=undefined;
+    clearTimeout(tickTimer);
+    loop();
+  }
+
+  document.addEventListener('keydown',event=>{
+    if(FACES[active].id!=='face6' || event.repeat || event.isComposing ||
+      event.ctrlKey || event.altKey || event.metaKey || event.defaultPrevented) return;
+    const key=event.key.toLowerCase();
+    if(event.code==='KeyT' || key==='t') setPreview(!preview);
+    else if(event.code==='KeyS' || key==='s') toggleFlipSound();
+    else return;
+    event.preventDefault();
+  });
 
   // force===false 면 무조건 즉시(애니메이션 없이) 세팅. 그 외엔 활성 플립 페이스(face6)만 애니메이션.
   function renderFlip(force){
-    const inst = force===false;
-    const a6 = !inst && FACES[active] && FACES[active].id==='face6';
-    setGroup(hCards6,cur.h,a6); setGroup(mCards6,cur.m,a6);
+    if(!cur) return;
+    if(force===false && FACES[active].id!=='face6'){
+      stopFlipSound();
+    }
+    const {hh,mm,ampm}=cur;
+    const time=hh+mm+ampm;
+    if(force!==false && time===lastFlipTime) return;
+    const animate=force!==false && lastFlipTime && FACES[active].id==='face6' && !document.hidden;
+    const hourChanged=hourCard.dataset.value!==hh;
+    lastFlipTime=time;
+    flipRow.setAttribute('aria-label',hh+':'+mm+' '+ampm);
+    const motion=Boolean(animate && !reducedFlipMotion.matches);
+    setCard(hourCard,hh,motion);
+    setCard(minuteCard,mm,motion);
+    setCard(ampmCard,ampm,motion);
+    if(animate && soundOn) playFlip(hourChanged);
   }
 
   function tick(){
-    const d=new Date();
+    const realTime=new Date();
+    const d=preview?new Date(preview.start+(performance.now()-preview.beganAt)*20):realTime;
     const h24n=d.getHours(), m=d.getMinutes(), s=d.getSeconds();
     const ampm=h24n>=12?'PM':'AM'; const h12=h24n%12||12;
     const hh=pad(h12),mm=pad(m),ss=pad(s);
-    cur={h:hh,m:mm,s:ss};
+    cur={hh,mm,ampm};
 
     const dayL=DAYS[d.getDay()], day3=DAYS3[d.getDay()];
     const monL=MON[d.getMonth()], mon3=MON3[d.getMonth()], dn=d.getDate();
@@ -752,7 +833,9 @@
       dshort:    day3+' · '+mon3+' '+dn,   // 약식요일 · 약식월 일 (face6 플립)
     };
     // 각 face가 자기 render 로 갱신 (face6.render 안에서 flip 카드도 함께 갱신)
-    for(const f of FACES) f.render(p, f.r);
+    for(const f of FACES){
+      if(!preview || f.id==='face6') f.render(p, f.r);
+    }
 
     // 시 자릿수(예: 9→10, 12→1)가 바뀌면 시간 폭이 달라지므로 다시 맞춤
     const hlen = String(h12).length;
@@ -765,8 +848,11 @@
   renderFlip(false);
   fitActive();
   // align to second boundary, then tick each second
-  function loop(){ tick(); setTimeout(loop, 1000 - (Date.now()%1000)); }
-  setTimeout(loop, 1000 - (Date.now()%1000));
+  function loop(){
+    tick();
+    tickTimer=setTimeout(loop,preview?100:1000-(Date.now()%1000));
+  }
+  tickTimer=setTimeout(loop,1000-(Date.now()%1000));
 })();
 </script>
 
