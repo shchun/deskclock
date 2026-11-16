@@ -113,7 +113,34 @@ jobs:
         run: cargo test --manifest-path src-tauri/Cargo.toml --locked
       - name: Build Windows executable and installer
         if: matrix.platform == 'windows'
-        run: npm run build:windows -- -- --locked
+        env:
+          UPDATER_PUBLIC_KEY: ${{ vars.TAURI_UPDATER_PUBLIC_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ github.event_name != 'pull_request' && secrets.TAURI_SIGNING_PRIVATE_KEY || '' }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ github.event_name != 'pull_request' && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
+            npm run build:windows -- -- --locked
+            exit $LASTEXITCODE
+          }
+          if (!$env:UPDATER_PUBLIC_KEY -or !$env:TAURI_SIGNING_PRIVATE_KEY) {
+            throw 'Configure TAURI_UPDATER_PUBLIC_KEY and TAURI_SIGNING_PRIVATE_KEY before publishing.'
+          }
+          $config = @{
+            bundle = @{ createUpdaterArtifacts = $true }
+            plugins = @{
+              updater = @{
+                pubkey = $env:UPDATER_PUBLIC_KEY.Trim()
+                endpoints = @("$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/latest/download/latest.json")
+                requireSignedVersion = $true
+                windows = @{ installMode = 'passive' }
+              }
+            }
+          }
+          $configPath = Join-Path $env:RUNNER_TEMP 'deskclock-updater.json'
+          $config | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $configPath -Encoding utf8
+          npm run build:windows -- --config $configPath -- --locked
+          exit $LASTEXITCODE
       - name: Collect Windows package
         if: matrix.platform == 'windows'
         shell: pwsh
@@ -124,7 +151,11 @@ jobs:
           Copy-Item -LiteralPath $packages[0].FullName -Destination "release-assets/DeskClock-$env:DESKCLOCK_VERSION-windows-x64.exe"
           $installers = @(Get-ChildItem -LiteralPath src-tauri/target/release/bundle/nsis -Filter '*-setup.exe' -File)
           if ($installers.Count -ne 1) { throw 'Expected exactly one Windows installer' }
-          Copy-Item -LiteralPath $installers[0].FullName -Destination "release-assets/DeskClock-$env:DESKCLOCK_VERSION-windows-x64-setup.exe"
+          $installerName = "DeskClock-$env:DESKCLOCK_VERSION-windows-x64-setup.exe"
+          Copy-Item -LiteralPath $installers[0].FullName -Destination "release-assets/$installerName"
+          if ($env:GITHUB_EVENT_NAME -ne 'pull_request') {
+            Copy-Item -LiteralPath "$($installers[0].FullName).sig" -Destination "release-assets/$installerName.sig"
+          }
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -152,16 +183,24 @@ jobs:
           pattern: release-*
           path: release-assets
           merge-multiple: true
-      - name: Verify both packages and calculate checksums
+      - name: Verify packages and generate updater manifest
         run: |
           test -s "release-assets/DeskClock-${DESKCLOCK_VERSION}-android-debug.apk"
           test -s "release-assets/DeskClock-${DESKCLOCK_VERSION}-windows-x64.exe"
           test -s "release-assets/DeskClock-${DESKCLOCK_VERSION}-windows-x64-setup.exe"
           cd release-assets
+          installer="DeskClock-${DESKCLOCK_VERSION}-windows-x64-setup.exe"
+          test -s "$installer.sig"
+          jq -n --arg version "$DESKCLOCK_VERSION" \
+            --arg url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/$installer" \
+            --arg signature "$(cat "$installer.sig")" \
+            '{version: $version, platforms: {"windows-x86_64": {url: $url, signature: $signature}}}' > latest.json
           sha256sum *.apk *.exe > SHA256SUMS.txt
       - name: Create or update GitHub Release
         run: |
-          if ! gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
-            gh release create "$RELEASE_TAG" --verify-tag --title "Desk Clock $RELEASE_TAG" --generate-notes
+          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" release-assets/*.apk release-assets/*.exe release-assets/*.sig release-assets/SHA256SUMS.txt --clobber
+            gh release upload "$RELEASE_TAG" release-assets/latest.json --clobber
+          else
+            gh release create "$RELEASE_TAG" release-assets/* --verify-tag --title "Desk Clock $RELEASE_TAG" --generate-notes
           fi
-          gh release upload "$RELEASE_TAG" release-assets/* --clobber

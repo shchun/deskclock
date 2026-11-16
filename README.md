@@ -68,6 +68,8 @@ npm run build:windows
 
 Windows 앱은 Tauri 2로 실행합니다. `src-tauri/target/release/deskclock.exe`에 단독 실행 파일, `src-tauri/target/release/bundle/nsis/`에 설치 프로그램이 생성됩니다. 단독 실행 파일에서 자동 실행을 설정한 뒤에는 EXE 위치를 유지하세요. WebView2가 필요하며, 설치 프로그램은 없는 경우 최초 설치 시 인터넷으로 내려받습니다. 설치 후 시계는 오프라인으로 동작합니다. 런타임까지 포함하는 완전 오프라인 설치 파일은 기본 빌드에 포함하지 않습니다. 기존 Electron의 `%APPDATA%/deskclock/widget.json` 설정은 최초 실행 때 자동으로 가져옵니다. 새 설정 위치는 `%APPDATA%/com.deskclock.widget/widget.json`입니다.
 
+자동 업데이트를 처음 사용하려면 GitHub Releases에서 업데이터가 포함된 Windows `-setup.exe`를 한 번 설치하세요. 설치판은 시작할 때 백그라운드에서 새 버전을 확인합니다. 트레이의 **업데이트 확인**으로 다시 확인할 수 있고, 새 버전이 있으면 **업데이트 설치**를 선택해 설치 및 재실행할 수 있습니다. 업데이트 확인과 다운로드에는 인터넷 연결이 필요합니다.
+
 ### Android APK 빌드
 
 처음 체크아웃했거나 네이티브 프로젝트 구성이 바뀌었으면 Capacitor를 동기화합니다.

@@ -1,4 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod updates;
+
 use serde_json::{json, Value};
 use std::{fs, sync::Mutex};
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, Submenu};
@@ -189,7 +191,13 @@ fn build_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     }
     let settings = MenuItem::with_id(app, "settings", "설정 열기", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "종료", true, None::<&str>)?;
-    Menu::with_items(app, &[&toggle, &top, &face_menu, &sizes, &settings, &quit])
+    let menu = Menu::with_items(app, &[&toggle, &top, &face_menu, &sizes, &settings])?;
+    if let Some(updates) = app.try_state::<updates::Updates>() {
+        let (id, label, enabled) = updates.menu_item();
+        menu.append(&MenuItem::with_id(app, id, label, enabled, None::<&str>)?)?;
+    }
+    menu.append(&quit)?;
+    Ok(menu)
 }
 fn rebuild_menu(app: &tauri::AppHandle) -> tauri::Result<()> {
     if let Some(t) = app.tray_by_id("tray") {
@@ -373,6 +381,7 @@ fn main() {
                 let _ = w.set_focus();
             }
         }))
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_autostart::Builder::new()
                 .app_name("deskclock")
@@ -389,6 +398,7 @@ fn main() {
         ])
         .setup(|app| {
             let handle = app.handle();
+            updates::Updates::setup(handle);
             // Keep the existing Electron login entry, pointing it at the new binary.
             if !cfg!(debug_assertions) && handle.autolaunch().is_enabled().unwrap_or(false) {
                 handle.autolaunch().enable()?;
@@ -478,6 +488,7 @@ fn main() {
                 .build(app)?;
             apply(handle, false).map_err(std::io::Error::other)?;
             w.show()?;
+            updates::check(handle);
             // Re-clamp when monitors are connected, removed, or their work areas change.
             let monitor_app = handle.clone();
             std::thread::spawn(move || {
@@ -517,6 +528,14 @@ fn main() {
         .on_menu_event(|app, event| {
             let id = event.id().as_ref();
             let result = match id {
+                "check_update" => {
+                    updates::check(app);
+                    Ok(())
+                }
+                "install_update" => {
+                    updates::install(app);
+                    Ok(())
+                }
                 "quit" => {
                     app.exit(0);
                     Ok(())
